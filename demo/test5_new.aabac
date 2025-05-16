@@ -1,0 +1,115 @@
+Users
+u0 u1;
+
+Attributes
+boolean: b2 b3 b4 b5 Admin b0 b1
+string: s3 s4 s5 s0 s1 s2
+int: n3 n4 n5 n0 n1 n2;
+
+Default Value
+s3: s3_0
+s4: s4_0
+s5: s5_0
+s0: s0_0
+s1: s1_0
+s2: s2_0;
+
+UAV
+(u0, b2, true)
+(u0, b4, true)
+(u0, Admin, true)
+(u0, b0, true)
+(u0, s3, s3_1)
+(u0, s4, s4_2)
+(u0, s5, s5_4)
+(u0, s0, s0_3)
+(u0, s2, s2_2)
+(u0, n0, 3)
+(u0, n1, 6)
+(u0, n2, 2)
+(u0, n4, 4)
+(u0, n5, 2)
+(u1, n3, 2)
+(u1, b2, true)
+(u1, n4, 3)
+(u1, n5, 3)
+(u1, b5, true)
+(u1, b1, true)
+(u1, s4, s4_4)
+(u1, s5, s5_1)
+(u1, s0, s0_2)
+(u1, s2, s2_7)
+(u1, n1, 1)
+(u1, n2, 2);
+
+Rules
+(Admin=true, s3=s3_2, b0, true)	/*{s3=[s3_2]}*/
+(Admin=true, b0=true, n5, 0)	/*{b0=[true]}*/
+(Admin=true, s4=s4_2, b3, true)	/*{s4=[s4_2]}*/
+(Admin=true, b0=true, b4, true)	/*{b0=[true]}*/
+(Admin=true, b3=false & s4=s4_0, s3, s3_1)	/*{b3=[false], s4=[s4_0]}*/
+(Admin=true, n0<=1, n3, 2)	/*{n0=[0]}*/
+(Admin=true, n1<7, n5, 1)	/*{n1=[0, 1, 2, 4, 5, 6]}*/
+(Admin=true, b2=true & b3=true & b0=true & s3=s3_0 & n5>1, s0, s0_3)	/*{b2=[true], b3=[true], n5=[2, 3, 4], b0=[true], s3=[s3_0]}*/
+(Admin=true, b3=true & s4=s4_0, n4, 4)	/*{b3=[true], s4=[s4_0]}*/
+(Admin=true, TRUE, n1, 5)	/*none*/
+(Admin=true, b5=false & s3=s3_2 & s5=s5_0 & n1!=2, n5, 0)	/*{b5=[false], s3=[s3_2], s5=[s5_0], n1=[0, 1, 4, 5, 6, 7]}*/
+(Admin=true, b5=false & s4=s4_0 & n1>=1 & s0=s0_5, s4, s4_2)	/*{b5=[false], s4=[s4_0], s0=[s0_5], n1=[1, 2, 4, 5, 6, 7]}*/
+(Admin=true, TRUE, s0, s0_1)	/*none*/
+(Admin=true, n2!=1, b0, true)	/*{n2=[0, 2]}*/
+(Admin=true, s0=s0_3 & b5=true & s3=s3_2 & n2>=0 & s1=s1_0, b4, false)	/*{b5=[true], s3=[s3_2], s0=[s0_3]}*/
+(Admin=true, TRUE, b1, false)	/*none*/
+(Admin=true, TRUE, n2, 0)	/*none*/
+(Admin=true, b2=true, b1, true)	/*{b2=[true]}*/
+(Admin=true, s3=s3_2, s0, s0_3)	/*{s3=[s3_2]}*/
+(Admin=true, TRUE, n2, 2)	/*none*/
+(Admin=true, b2=true & n2>=1 & n4>2, n3, 1)	/*{b2=[true], n2=[1, 2]}*/
+(Admin=true, b5=true & b1=true & n3>0, b2, false)	/*{n3=[1, 2], b5=[true], b1=[true]}*/
+(Admin=true, b4=true & b0=true & n2<1, b3, false)	/*{b4=[true], b0=[true], n2=[0]}*/
+(Admin=true, b3=false & b4=false & n1=5 & s0=s0_4 & s1=s1_0, s2, s2_5)	/*{b3=[false], b4=[false], s0=[s0_4], n1=[5]}*/
+(Admin=true, n5>0, b5, true)	/*{n5=[1, 2, 3, 4]}*/
+(Admin=true, TRUE, s2, s2_6)	/*none*/
+(Admin=true, s5=s5_4, b4, true)	/*{s5=[s5_4]}*/
+(Admin=true, TRUE, b5, true)	/*none*/
+(Admin=true, b2=true, s0, s0_4)	/*{b2=[true]}*/
+(Admin=true, s1=s1_0, n1, 4)	/*none*/
+(Admin=true, s0=s0_3 & b4=true & b2=false, n5, 4)	/*{b2=[false], b4=[true], s0=[s0_3]}*/
+(Admin=true, b0=false & n1>1 & n5<=1, s1, s1_0)	/*{n5=[0, 1], b0=[false], n1=[2, 4, 5, 6, 7]}*/
+(Admin=true, TRUE, n0, 3)	/*none*/
+(Admin=true, b1=true & n4>=2 & s0=s0_1, b1, false)	/*{s0=[s0_1]}*/
+(Admin=true, s0=s0_3 & b2=true & b4=false & b5=true & s1=s1_0, n3, 1)	/*{b2=[true], b4=[false], b5=[true], s0=[s0_3]}*/
+(Admin=true, TRUE, s3, s3_1)	/*none*/
+(Admin=true, s5=s5_1 & n0<2 & s1=s1_0, n1, 7)	/*{s5=[s5_1], n0=[0]}*/
+(Admin=true, s1=s1_0, s1, s1_0)	/*none*/
+(Admin=true, TRUE, n5, 2)	/*none*/
+(Admin=true, TRUE, n5, 3)	/*none*/
+(Admin=true, n5!=2 & b0=false, b2, false)	/*{n5=[0, 1, 3, 4], b0=[false]}*/
+(Admin=true, TRUE, b4, false)	/*none*/
+(Admin=true, b0=false & b1=true & n2>=1 & n5>1 & s1=s1_0, s3, s3_2)	/*{n5=[2, 3, 4], b0=[false], b1=[true], n2=[1, 2]}*/
+(Admin=true, TRUE, b3, true)	/*none*/
+(Admin=true, s5=s5_2 & b0=false & n2>0 & s1=s1_0, n2, 1)	/*{b0=[false], s5=[s5_2], n2=[2]}*/
+(Admin=true, n4!=1 & b2=true & b1=true & n2>=1 & n2>0, s3, s3_2)	/*{b2=[true], b1=[true], n2=[1, 2]}*/
+(Admin=true, TRUE, s4, s4_4)	/*none*/
+(Admin=true, b2=true & b4=false & b5=true, s3, s3_0)	/*{b2=[true], b4=[false], b5=[true]}*/
+(Admin=true, s2=s2_2 & b0=false & n4=4 & s4=s4_0 & s1=s1_0, b1, false)	/*{n4=[4], b0=[false], s4=[s4_0], s2=[s2_2]}*/
+(Admin=true, TRUE, b2, true)	/*none*/
+(Admin=true, b2=true & b4=false & n4=3 & s0=s0_4, s0, s0_5)	/*{b2=[true], n4=[3], b4=[false], s0=[s0_4]}*/
+(Admin=true, b3=true & b5=true & s2=s2_6, b0, true)	/*{b3=[true], b5=[true], s2=[s2_6]}*/
+(Admin=true, s0=s0_3 & b5=true & n2<=0, b3, false)	/*{b5=[true], s0=[s0_3], n2=[0]}*/
+(Admin=true, n2=0, s3, s3_1)	/*{n2=[0]}*/
+(Admin=true, TRUE, n3, 2)	/*none*/
+(Admin=true, b3=true & b1=false, s4, s4_0)	/*{b3=[true], b1=[false]}*/
+(Admin=true, n1<6 & b0=true & s5=s5_0, n1, 2)	/*{b0=[true], s5=[s5_0], n1=[0, 1, 4, 5]}*/
+(Admin=true, b3=true & n2>=0, s3, s3_0)	/*{b3=[true]}*/
+(Admin=true, b3=false & b5=false & n1<3, s1, s1_0)	/*{b3=[false], b5=[false], n1=[0, 1, 2]}*/
+(Admin=true, n3<=1, s3, s3_0)	/*{n3=[0, 1]}*/
+(Admin=true, b3=true & s1=s1_0, n5, 2)	/*{b3=[true]}*/
+(Admin=true, b1=true, n3, 1)	/*{b1=[true]}*/
+(Admin=true, n1!=4 & b3=false & b4=false & n2!=0, n2, 1)	/*{b3=[false], b4=[false], n1=[0, 1, 2, 5, 6, 7], n2=[2]}*/
+(Admin=true, b4=true & b1=false & n4>1 & n4>=3, s5, s5_2)	/*{b4=[true], b1=[false]}*/
+(Admin=true, s0=s0_2 & n3=0, s1, s1_0)	/*{n3=[0], s0=[s0_2]}*/
+(Admin=true, b4=true & s4=s4_3 & s0=s0_4 & n4>=2, b5, false)	/*{b4=[true], s4=[s4_3], s0=[s0_4]}*/
+(Admin=true, b4=false & b1=false & n2!=0 & b2=false & s3=s3_1, b0, false)	/*{b2=[false], b4=[false], b1=[false], s3=[s3_1], n2=[1, 2]}*/;
+
+Spec
+(u1, s4 = s4_1);

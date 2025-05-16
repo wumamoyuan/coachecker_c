@@ -63,7 +63,6 @@ static int writeUsers(FILE *fp, AABACInstance *pInst) {
  *      0：成功，-1：失败
  ***************************************************************************************************/
 static int writeAttrsAndDefaultValues(FILE *fp, AABACInstance *pInst) {
-    int ret = 0;
     if (iHashMap.Size(pInst->pmapAttr2Dom) == 0) {
         logAABAC(__func__, __LINE__, 0, ERROR, "[Writing] The set of attributes is empty\n");
         return -1;
@@ -311,27 +310,27 @@ int writeAABACInstance(AABACInstance *pInst, char *filename) {
     }
 
     int ret;
-    if (ret = writeUsers(fp, pInst)) {
+    if ((ret = writeUsers(fp, pInst)) != 0) {
         logAABAC(__func__, __LINE__, 0, ERROR, "[Writing] Failed to write users\n");
         fclose(fp);
         return ret;
     }
-    if (ret = writeAttrsAndDefaultValues(fp, pInst)) {
+    if ((ret = writeAttrsAndDefaultValues(fp, pInst)) != 0) {
         logAABAC(__func__, __LINE__, 0, ERROR, "[Writing] Failed to write attributes and default values\n");
         fclose(fp);
         return ret;
     }
-    if (ret = writeUAVs(fp, pInst)) {
+    if ((ret = writeUAVs(fp, pInst)) != 0) {
         logAABAC(__func__, __LINE__, 0, ERROR, "[Writing] Failed to write user attribute values\n");
         fclose(fp);
         return ret;
     }
-    if (ret = writeRules(fp, pInst)) {
+    if ((ret = writeRules(fp, pInst)) != 0) {
         logAABAC(__func__, __LINE__, 0, ERROR, "[Writing] Failed to write rules\n");
         fclose(fp);
         return ret;
     }
-    if (ret = writeSpec(fp, pInst)) {
+    if ((ret = writeSpec(fp, pInst)) != 0) {
         logAABAC(__func__, __LINE__, 0, ERROR, "[Writing] Failed to write special attributes\n");
         fclose(fp);
         return ret;

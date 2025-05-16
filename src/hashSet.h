@@ -25,7 +25,7 @@ typedef struct _HashSetInterface {
     DestructFn (*SetDestructElement)(HashSet *hashSet, DestructFn destructElement); // 设置键析构函数
     void (*DestructPointer)(void *pHashSet);
     HashSetIterator *(*NewIterator)(HashSet *hashSet);
-    int (*DeleteIterator)(HashSetIterator *it);
+    HashSetIterator *(*DeleteIterator)(HashSetIterator *it);
 } HashSetInterface;
 
 extern HashSetInterface iHashSet;

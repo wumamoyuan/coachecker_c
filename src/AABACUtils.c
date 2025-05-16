@@ -186,7 +186,7 @@ char *mapToString(HashMap *map, char *(*keyToString)(void *key), char *(*valueTo
     int cur = 0;
     ret[cur++] = '{';
     int first = 1;
-    int keyLen, valueLen, retLen = 1, newRetLen;
+    int keyLen, valueLen;
     while (it->HasNext(it)) {
         node = it->GetNext(it);
         key = keyToString(node->key);

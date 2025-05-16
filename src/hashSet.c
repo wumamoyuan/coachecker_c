@@ -127,7 +127,7 @@ static char *ToString(void *pHashSet) {
     int cur = 0;
     ret[cur++] = '[';
     int first = 1;
-    int elementLen, retLen = 1, newRetLen;
+    int elementLen;
     while (it->HasNext(it)) {
         e = hashSet->keyToString(it->GetNext(it));
         elementLen = strlen(e);
@@ -148,8 +148,8 @@ static char *ToString(void *pHashSet) {
     return ret;
 }
 
-static int DeleteIterator(HashSetIterator *it) {
-    iHashMap.DeleteIterator(it);
+static HashSetIterator *DeleteIterator(HashSetIterator *it) {
+    return iHashMap.DeleteIterator(it);
 }
 
 static KeyToString SetElementToString(HashSet *hashSet, KeyToString elementToString) {

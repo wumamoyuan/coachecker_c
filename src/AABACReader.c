@@ -65,12 +65,12 @@ static int handleUsers(AABACInstance *pInst, char *line) {
     }
 }
 
-static int handleAttributes(AABACInstance *pInst, char *line) {
+static int handleAttributes(char *line) {
     if (strcmp(";", line) == 0) {
         return 0;
     }
 
-    char *token = NULL, *type = NULL, *defaultValue = NULL;
+    char *token = NULL, *type = NULL;
     int start = 0, cur = 0;
     int attrStrTrimmed = 0;
     AttrType attrType;
@@ -220,10 +220,10 @@ static int handleUAV(AABACInstance *pInst, char *line) {
         logAABAC(__func__, __LINE__, 0, ERROR, "Failed to handle UAV: %s, %s, %s)\n", user, attr, value);
         exit(ret);
     }
+    return 0;
 }
 
-static AtomCondition *handleAtomCondition(AABACInstance *pInst,
-                                          char *atomCondStr) {
+static AtomCondition *handleAtomCondition(char *atomCondStr) {
     char *attr = NULL, *value = NULL;
     comparisonOperator op;
     char *p = atomCondStr;
@@ -306,7 +306,7 @@ static AtomCondition *handleAtomCondition(AABACInstance *pInst,
     return atomCond;
 }
 
-static HashSet *handleCondition(AABACInstance *pInst, char *condStr) {
+static HashSet *handleCondition(char *condStr) {
     HashSet *condition = iHashSet.Create(sizeof(AtomCondition), iAtomCondition.HashCode, iAtomCondition.Equal);
     if (strcmp("TRUE", condStr) == 0) {
         return condition;
@@ -316,7 +316,7 @@ static HashSet *handleCondition(AABACInstance *pInst, char *condStr) {
     AtomCondition *pAtomCond;
     while (atomCondStr != NULL) {
         atomCondStr = strtrim(atomCondStr);
-        pAtomCond = handleAtomCondition(pInst, atomCondStr);
+        pAtomCond = handleAtomCondition(atomCondStr);
         iHashSet.Add(condition, pAtomCond);
         free(pAtomCond);
         atomCondStr = strtok(NULL, "&");
@@ -383,11 +383,12 @@ static int handleRule(AABACInstance *pInst, char *line) {
         logAABAC(__func__, __LINE__, 0, ERROR, "Failed to handle rule: (%s, %s, %s, %s)\n", adminCondStr, userCondStr, attr, value);
         exit(ret);
     }
-    Rule *r = iRule.Create(handleCondition(pInst, adminCondStr), handleCondition(pInst, userCondStr), attrIdx, valueIdx);    
+    Rule *r = iRule.Create(handleCondition(adminCondStr), handleCondition(userCondStr), attrIdx, valueIdx);    
     iVector.Add(pVecRules, r);
     free(r);
     int ruleIdx = iVector.Size(pVecRules) - 1;
     addRule(pInst, ruleIdx);
+    return 0;
 }
 
 static int handleSpec(AABACInstance *pInst, char *line) {
@@ -445,6 +446,7 @@ static int handleSpec(AABACInstance *pInst, char *line) {
     queryUser = strtrim(queryUser);
     pInst->queryUserIdx = getUserIndex(queryUser);
     logAABAC(__func__, __LINE__, 0, INFO, "query user: %s\n", queryUser);
+    return 0;
 }
 
 /****************************************************************************************************
@@ -467,7 +469,7 @@ static int handleLine(AABACInstance *pInst, int stage, char *line) {
         handleUsers(pInst, line);
         break;
     case 2:
-        if (handleAttributes(pInst, line)) {
+        if (handleAttributes(line)) {
             return -1;
         }
         break;

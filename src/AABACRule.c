@@ -190,7 +190,6 @@ static int DiscreteCond(Rule *r, HashMap *reachableAVs) {
         HashSetIterator *it = iHashSet.NewIterator(r->userCond);
         AtomCondition *atomCond;
         int attrIdx;
-        AttrType attrType;
         while (it->HasNext(it)) {
             atomCond = it->GetNext(it); //*(atomCondition **)it->GetNext(it);
             attrIdx = atomCond->attribute;
@@ -285,7 +284,7 @@ static int CanBeManaged(Rule *r, HashMap *userState) {
 static int IsEffective(Rule *r, HashMap *reachableAVs) {
     int ret = 1;
     HashNodeIterator *it = iHashMap.NewIterator(r->pmapUserCondValue);
-    int flag, *pAttrIdx, *pUserAttrVal, *pVal;
+    int flag, *pAttrIdx, *pVal;
     HashNode *node;
     HashSet *condValues, **pReachableValues;
     HashSetIterator *itCondValues;

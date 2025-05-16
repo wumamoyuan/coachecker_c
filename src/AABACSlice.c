@@ -14,7 +14,6 @@
  *      1：存在满足条件的用户，0：不存在满足条件的用户
  ***************************************************************************************************/
 static int isEffective(AABACInstance *pInst, HashSet *pCond) {
-    HashNode *node;
     int attrIdx, *pValueIdx;
     HashMap *pmapAVs;
     HashSetIterator *itCond;
@@ -95,13 +94,13 @@ AABACInstance *userCleaning(AABACInstance *pInst) {
     HashMap *pmapAdminCond2Bool = iHashMap.Create(sizeof(HashSet *), sizeof(int), iHashSet.HashCode, iHashSet.Equal);
     iHashMap.SetDestructKey(pmapAdminCond2Bool, iHashSet.DestructPointer);
     HashSetIterator *itRuleIdxes = iHashSet.NewIterator(pInst->pSetRuleIdxes);
-    int effective, ruleIdx;
+    int effective, *pEffective, ruleIdx;
     HashSet *psetAdminCond;
     while (itRuleIdxes->HasNext(itRuleIdxes)) {
         ruleIdx = *(int *)itRuleIdxes->GetNext(itRuleIdxes);
         Rule *pRule = (Rule *)iVector.GetElement(pVecRules, ruleIdx);
         psetAdminCond = pRule->adminCond;
-        int effective, *pEffective = iHashMap.Get(pmapAdminCond2Bool, &psetAdminCond);
+        pEffective = iHashMap.Get(pmapAdminCond2Bool, &psetAdminCond);
         if (pEffective != NULL && *pEffective) {
             pRule->adminCond = iHashSet.Create(sizeof(AtomCondition), iAtomCondition.HashCode, iAtomCondition.Equal);
             addRule(pNewInst, ruleIdx);
@@ -121,9 +120,6 @@ AABACInstance *userCleaning(AABACInstance *pInst) {
     iHashSet.Finalize(pInst->pSetRuleIdxes);
     iHashBasedTable.Finalize(pInst->pTableTargetAV2Rule);
     iHashBasedTable.Finalize(pInst->pTablePrecond2Rule);
-
-    // 必须保留该行代码，否则该函数的运行时长会大幅增加
-    // clock_t time = clock();
 
     // 2.只保留目标用户
     int queryUserIdx = pInst->queryUserIdx;
@@ -241,7 +237,7 @@ AABACInstance *ruleCleaning(AABACInstance *pInst, int *ruleCleaningCnt, int *pMo
     }
 
     /*2.根据值域清洗规则，同时根据Set的无重复性删除重复规则*/
-    int i, discreteResult, nOldRules = iHashSet.Size(pInst->pSetRuleIdxes);
+    int discreteResult, nOldRules = iHashSet.Size(pInst->pSetRuleIdxes);
     Rule *pRule;
     HashSetIterator *itRuleIdxes = iHashSet.NewIterator(pInst->pSetRuleIdxes);
     int ruleIdx;
@@ -316,7 +312,7 @@ AABACInstance *ruleCleaning(AABACInstance *pInst, int *ruleCleaningCnt, int *pMo
  * 返回值：
  *      处理后的AABAC实例
  ***************************************************************************************************/
-static AABACInstance *forwardSlice(AABACInstance *pInst, int *forwardSlicingCnt, int *pModification, AABACResult *result) {
+static AABACInstance *forwardSlice(AABACInstance *pInst, int *forwardSlicingCnt, int *pModification) {
     logAABAC(__func__, __LINE__, 0, INFO, "[start] forward slicing %d\n", *forwardSlicingCnt);
     clock_t startForwardSlicing = clock();
     *pModification = 0;
@@ -505,7 +501,7 @@ static int AVPEqual(void *pKey1, void *pKey2) {
     return pAVP1->attrIdx == pAVP2->attrIdx && pAVP1->valIdx == pAVP2->valIdx;
 }
 
-AABACInstance *backwardSlice(AABACInstance *pInst, int *backwardSlicingCnt, int *pModification, AABACResult *result) {
+AABACInstance *backwardSlice(AABACInstance *pInst, int *backwardSlicingCnt, int *pModification) {
     logAABAC(__func__, __LINE__, 0, INFO, "[Start] backward slicing %d\n", *backwardSlicingCnt);
     clock_t startBackwardSlicing = clock();
     *pModification = 0;
@@ -551,7 +547,7 @@ AABACInstance *backwardSlice(AABACInstance *pInst, int *backwardSlicingCnt, int 
         }
         iHashSet.Add(*ppSetVals, &avp.valIdx);
 
-        HashSetIterator *itRuleIdxes = iHashSet.NewIterator(*ppSetRuleIdxes);
+        itRuleIdxes = iHashSet.NewIterator(*ppSetRuleIdxes);
         while (itRuleIdxes->HasNext(itRuleIdxes)) {
             ruleIdx = *(int *)itRuleIdxes->GetNext(itRuleIdxes);
             pRule = (Rule *)iVector.GetElement(pVecRules, ruleIdx);
@@ -638,12 +634,12 @@ AABACInstance *slice(AABACInstance *pInst, AABACResult *pResult) {
             // 实例不再变化时，停止剪枝
             break;
         }
-        pInst = forwardSlice(pInst, &fsCnt, &fsMod, pResult);
+        pInst = forwardSlice(pInst, &fsCnt, &fsMod);
         if (!rcMod && !fsMod && !bsMod) {
             // 实例不再变化时，停止剪枝
             break;
         }
-        pInst = backwardSlice(pInst, &bsCnt, &bsMod, pResult);
+        pInst = backwardSlice(pInst, &bsCnt, &bsMod);
         if (!rcMod && !fsMod && !bsMod) {
             // 实例不再变化时，停止剪枝
             break;

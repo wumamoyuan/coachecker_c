@@ -28,7 +28,6 @@ AABACResult preCheck(AABACInstance *pInst) {
     HashMap *pmapQueryAVs = pInst->pmapQueryAVs;
     HashBasedTable *pTableTargetAV2Rule = pInst->pTableTargetAV2Rule;
     Vector *pVecSelectedRuleIdxes = iVector.Create(sizeof(int), 0);
-    AABACResult result;
 
     // 第一阶段，对于a1=v1,...,an=vn形式的查询，依次检查是否存在目标为ai=vi且条件为true的规则，如果都存在，则说明查询属性组是可达的
     int success = 1, found;

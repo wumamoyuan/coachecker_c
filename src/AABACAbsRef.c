@@ -163,7 +163,7 @@ static int backwardSearch(AbsRef *pAbsRef) {
     HashNode *node, *node2;
     HashSet **ppSetRuleIdxes, *pSetValIdxes, **ppSetValIdxes;
     HashSetIterator *itSetValIdx, *itSetValIdx2, *itSetRuleIdx;
-    int *pAttrIdx, *pAttrIdx2, *pValueIdx, *pValueIdx2, *pRuleIdx, targetAttrIdx, targetValueIdx;
+    int *pAttrIdx, *pAttrIdx2, *pValueIdx, *pValueIdx2, *pRuleIdx;
     Rule *pRule;
 
     while (itMap->HasNext(itMap)) {
@@ -224,7 +224,7 @@ static int backwardSearch(AbsRef *pAbsRef) {
     return ret;
 }
 
-static void *cloneRules(AbsRef *pAbsRef) {
+static void cloneRules(AbsRef *pAbsRef) {
     int nRules = iVector.Size(pAbsRef->pOriVecRules);
 
     Vector *pVecNewRules = iVector.Create(sizeof(Rule), nRules);

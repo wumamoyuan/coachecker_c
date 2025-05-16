@@ -155,8 +155,6 @@ static char *run(char *cmdPath, char *args[], char *resultFilePath, long timeout
     FILE *fp = fopen(resultFilePath, "w");
     if (output) {
         fprintf(fp, "%s", output);
-    } else {
-        fprintf(fp, "");
     }
     fclose(fp);
 
@@ -279,7 +277,7 @@ AABACResult analyzeModelCheckerOutput(char *output, AABACInstance *pInst, char *
             if (*p != '\0') {
                 *(p++) = '\0';
             } else {
-                p == NULL;
+                p = NULL;
             }
             variable = strtrim(variable);
             if (strcmp(variable, "attr") == 0) {

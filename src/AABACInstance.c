@@ -101,7 +101,7 @@ char *attrIdxToString(void *pAttrIdx) {
 
 char *intValueIdxToString(void *pIntValIdx) {
     char *buffer = (char *)malloc(32);
-    snprintf(buffer, sizeof(buffer), "%d", *(int *)pIntValIdx);
+    sprintf(buffer, "%d", *(int *)pIntValIdx);
     return buffer;
 }
 
@@ -139,6 +139,7 @@ int addUAV(AABACInstance *pInst, char *user, char *attr, char *value) {
     }
     addAV(pInst, attrType, attrIdx, valueIdx);
     iHashBasedTable.Put(pInst->pTableInitState, &userIdx, &attrIdx, &valueIdx);
+    return 0;
 }
 
 // 将用户属性值对添加到初始状态表中，并更新属性域
@@ -146,6 +147,7 @@ int addUAVByIdx(AABACInstance *pInst, int userIdx, int attrIdx, int valueIdx) {
     AttrType attrType = getAttrTypeByIdx(attrIdx);
     addAV(pInst, attrType, attrIdx, valueIdx);
     iHashBasedTable.Put(pInst->pTableInitState, &userIdx, &attrIdx, &valueIdx);
+    return 0;
 }
 
 // 添加规则
@@ -172,7 +174,6 @@ int addRule(AABACInstance *pInst, int ruleIdx) {
         HashNode *nodeUserCondValue;
         HashSet *psetVals;
 
-        HashMap *pmapValToRules, **ppmapValToRules;
         HashSet *psetRulesOfAV, **ppsetRulesOfAV;
         HashNodeIterator *itUserCondValue = iHashMap.NewIterator(r->pmapUserCondValue);
         HashSetIterator *itVals;
@@ -258,7 +259,7 @@ AttrType getAttrType(char *attr) {
 AttrType getAttrTypeByIdx(int attrIdx) {
     int *pAttrTypeIdx = (int *)iHashMap.Get(pmapAttr2Type, &attrIdx);
     if (pAttrTypeIdx == NULL) {
-        fprintf(stderr, "error: cannot find attribute index %s, please check the policy again\n", attrIdx);
+        fprintf(stderr, "error: cannot find attribute index %d, please check the policy again\n", attrIdx);
         exit(-1);
     }
     return *pAttrTypeIdx;
@@ -276,16 +277,6 @@ char *getValueByIndex(AttrType attrType, int valueIdx) {
         logAABAC(__func__, __LINE__, 0, ERROR, "The attribute datatype should be %d(boolean), %d(string), or %d(integer)\n", BOOLEAN, STRING, INTEGER);
         exit(-1);
     }
-}
-
-char *getAttributeDefaultValue(char *attr) {
-    int attrTypeIdx = getAttrType(attr);
-    int *pDefValIdx = (int *)iHashMap.Get(pmapAttr2DefVal, attr);
-    if (pDefValIdx == NULL) {
-        fprintf(stderr, "error: cannot find attribute %s, please check the policy again\n", attr);
-        exit(-1);
-    }
-    return istrCollection.GetElement(pscValues, *pDefValIdx);
 }
 
 int getInitValue(AABACInstance *pInst, int userIdx, int attrIdx) {
@@ -452,7 +443,6 @@ void init(AABACInstance *pInst) {
     HashMap *map = iHashMap.Create(sizeof(int), sizeof(int), IntHashCode, IntEqual);
     int userNum = iVector.Size(pInst->pVecUserIdxes);
     int *pAttrIdx;
-    strCollection *attrs;
     int flag, *pFlag;
     if (iHashMap.Size(pInst->pTableInitState->pRowMap) == userNum) {
         int first = 1;

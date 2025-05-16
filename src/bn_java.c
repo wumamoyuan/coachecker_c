@@ -43,13 +43,6 @@
 
 #define require(p, msg) assert(p &&msg)
 
-static void printArray(uint32_t *array, int len) {
-    for (int i = 0; i < len; i++) {
-        printf("%08x ", array[i]);
-    }
-    printf("\n");
-}
-
 static BigInteger createFromInt(int i) {
     if (i == 0) {
         return ZERO;

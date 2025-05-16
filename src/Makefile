@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -I.
-LDFLAGS = -L../lib -ll
+LDFLAGS = -L../lib -lccl
 
 # 获取所有.c文件
 SRCS = $(wildcard *.c)
@@ -19,7 +19,7 @@ $(TARGET): $(OBJS)
 
 # 编译规则
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) -c $< -o $@
 
 # 清理规则
 clean:

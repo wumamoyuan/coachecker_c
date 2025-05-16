@@ -9,38 +9,38 @@
 #define TREEIFY_THRESHOLD 8
 #define MAX_INTEGER 0x7FFFFFFF
 
-static int numberOfLeadingZeros(int i) {
-    // HD, Count leading 0's
-    if (i <= 0)
-        return i == 0 ? 32 : 0;
-    int n = 31;
-    if (i >= 1 << 16) {
-        n -= 16;
-        i = (unsigned int)i >> 16;
-    }
-    if (i >= 1 << 8) {
-        n -= 8;
-        i = (unsigned int)i >> 8;
-    }
-    if (i >= 1 << 4) {
-        n -= 4;
-        i = (unsigned int)i >> 4;
-    }
-    if (i >= 1 << 2) {
-        n -= 2;
-        i = (unsigned int)i >> 2;
-    }
-    return n - ((unsigned int)i >> 1);
-}
+// static int numberOfLeadingZeros(int i) {
+//     // HD, Count leading 0's
+//     if (i <= 0)
+//         return i == 0 ? 32 : 0;
+//     int n = 31;
+//     if (i >= 1 << 16) {
+//         n -= 16;
+//         i = (unsigned int)i >> 16;
+//     }
+//     if (i >= 1 << 8) {
+//         n -= 8;
+//         i = (unsigned int)i >> 8;
+//     }
+//     if (i >= 1 << 4) {
+//         n -= 4;
+//         i = (unsigned int)i >> 4;
+//     }
+//     if (i >= 1 << 2) {
+//         n -= 2;
+//         i = (unsigned int)i >> 2;
+//     }
+//     return n - ((unsigned int)i >> 1);
+// }
 
-/**
- * Returns a power of two size for the given target capacity.
- */
-static int tableSizeFor(int cap) {
-    int n = -1 >> numberOfLeadingZeros(cap - 1);
-    return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY
-                                                 : n + 1;
-}
+// /**
+//  * Returns a power of two size for the given target capacity.
+//  */
+// static int tableSizeFor(int cap) {
+//     int n = -1 >> numberOfLeadingZeros(cap - 1);
+//     return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY
+//                                                  : n + 1;
+// }
 
 /**
  * Default hash function. Calculates the hash code of the adress of the given key.
@@ -64,7 +64,6 @@ static unsigned int DefualtHashCode(void *key) {
  * @return 1 if the keys are equal, 0 otherwise.
  */
 static int DefaultEqual(void *key1, void *key2) {
-    printf("compare: %s, %s\n", key1, key2);
     return key1 == key2;
 }
 

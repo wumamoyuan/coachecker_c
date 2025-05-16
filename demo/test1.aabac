@@ -1,0 +1,542 @@
+Users
+u0 u1;
+
+Attributes
+boolean: r2 r3 r4 r5 r6 r7 r8 r9 r50 r52 r51 r54 r10 r53 r56 r12 r55 r11 r58 r14 r57 r13 r16 r59 r15 r18 r17 r19 r61 r60 r63 r62 r65 r21 r64 r20 r67 r23 r66 r22 r69 r25 r68 r24 r27 r26 r29 r28 r30 r32 r31 r34 r33 r36 r35 r38 r37 r39 Admin r41 r40 r43 r42 r45 r44 r47 r46 r49 r48 r0 r1;
+
+Default Value
+;
+
+UAV
+(u0, Admin, true);
+
+Rules
+(Admin=true, r56=true & r11=true & r41=true & r68=true, r15, true)	/*not defined*/
+(Admin=true, r37=true & r31=true & r41=true & r68=true & r59=true, r8, true)	/*not defined*/
+(Admin=true, r32=false & r23=true, r41, true)	/*not defined*/
+(Admin=true, r27=false & r38=true, r33, true)	/*not defined*/
+(Admin=true, r26=true & r37=true & r1=false & r31=true & r59=true, r30, true)	/*not defined*/
+(Admin=true, r26=true & r53=false & r34=true, r58, true)	/*not defined*/
+(Admin=true, TRUE, r42, false)	/*not defined*/
+(Admin=true, TRUE, r30, false)	/*not defined*/
+(Admin=true, r26=true & r67=true & r33=true & r7=false & r8=false & r55=true, r38, true)	/*not defined*/
+(Admin=true, TRUE, r66, false)	/*not defined*/
+(Admin=true, TRUE, r54, false)	/*not defined*/
+(Admin=true, r26=true & r49=true & r55=true & r59=true, r32, true)	/*not defined*/
+(Admin=true, r60=true & r37=true, r27, true)	/*not defined*/
+(Admin=true, r39=true & r6=true & r17=true & r12=false & r42=true, r20, true)	/*not defined*/
+(Admin=true, r56=true & r26=true & r49=true & r28=false & r22=false & r68=true, r31, true)	/*not defined*/
+(Admin=true, r31=true, r30, true)	/*not defined*/
+(Admin=true, r43=true & r23=true, r16, true)	/*not defined*/
+(Admin=true, r56=true & r26=true & r2=false & r31=true & r68=true & r59=true, r64, true)	/*not defined*/
+(Admin=true, r38=true & r15=false & r4=false & r19=true & r0=true, r33, true)	/*not defined*/
+(Admin=true, r18=false, r60, true)	/*not defined*/
+(Admin=true, r26=true & r64=true & r14=false & r31=true, r37, true)	/*not defined*/
+(Admin=true, r38=true & r36=true & r48=true & r60=false & r14=true, r65, true)	/*not defined*/
+(Admin=true, TRUE, r53, false)	/*not defined*/
+(Admin=true, TRUE, r41, false)	/*not defined*/
+(Admin=true, TRUE, r65, false)	/*not defined*/
+(Admin=true, r26=true & r41=true & r23=true, r7, true)	/*not defined*/
+(Admin=true, r6=true, r11, true)	/*not defined*/
+(Admin=true, r23=false & r44=true, r53, true)	/*not defined*/
+(Admin=true, r29=true & r58=true & r38=true, r24, true)	/*not defined*/
+(Admin=true, r42=true & r23=true, r46, true)	/*not defined*/
+(Admin=true, r65=true & r38=true & r3=false & r19=true & r4=false & r6=false, r9, true)	/*not defined*/
+(Admin=true, r5=false & r4=false & r23=true, r29, true)	/*not defined*/
+(Admin=true, r13=true & r62=true & r49=true & r23=true, r5, true)	/*not defined*/
+(Admin=true, r50=false & r47=true & r51=true & r4=false, r69, true)	/*not defined*/
+(Admin=true, r36=true, r33, true)	/*not defined*/
+(Admin=true, r24=true & r23=true, r29, true)	/*not defined*/
+(Admin=true, r56=true & r26=true & r37=true & r40=false, r59, true)	/*not defined*/
+(Admin=true, r29=true, r35, true)	/*not defined*/
+(Admin=true, r17=true & r12=false, r40, true)	/*not defined*/
+(Admin=true, r4=true & r67=true & r3=false & r11=false & r32=true, r13, true)	/*not defined*/
+(Admin=true, r26=true & r56=true & r68=true, r64, true)	/*not defined*/
+(Admin=true, TRUE, r20, false)	/*not defined*/
+(Admin=true, TRUE, r44, false)	/*not defined*/
+(Admin=true, TRUE, r32, false)	/*not defined*/
+(Admin=true, TRUE, r68, false)	/*not defined*/
+(Admin=true, TRUE, r56, false)	/*not defined*/
+(Admin=true, r59=false & r17=true & r14=true, r62, true)	/*not defined*/
+(Admin=true, r56=true & r37=true & r3=false & r68=true, r26, true)	/*not defined*/
+(Admin=true, r66=false & r58=true & r51=true, r69, true)	/*not defined*/
+(Admin=true, r30=true & r37=true & r28=false & r4=false, r56, true)	/*not defined*/
+(Admin=true, r13=true & r17=true & r19=false, r49, true)	/*not defined*/
+(Admin=true, r26=true & r23=false, r38, true)	/*not defined*/
+(Admin=true, r56=true, r47, true)	/*not defined*/
+(Admin=true, r25=true & r10=false & r16=true, r43, true)	/*not defined*/
+(Admin=true, r65=true & r58=true & r38=true, r3, true)	/*not defined*/
+(Admin=true, r17=true, r40, true)	/*not defined*/
+(Admin=true, r65=true & r5=false & r14=false & r23=true, r16, true)	/*not defined*/
+(Admin=true, TRUE, r31, false)	/*not defined*/
+(Admin=true, TRUE, r55, false)	/*not defined*/
+(Admin=true, r0=false & r58=true & r12=true & r13=false, r21, true)	/*not defined*/
+(Admin=true, TRUE, r43, false)	/*not defined*/
+(Admin=true, r30=true & r31=true, r47, true)	/*not defined*/
+(Admin=true, TRUE, r67, false)	/*not defined*/
+(Admin=true, r37=true & r29=true & r15=true & r67=true & r21=true, r23, true)	/*not defined*/
+(Admin=true, r58=true & r38=true & r3=true, r2, true)	/*not defined*/
+(Admin=true, r38=true & r36=true, r50, true)	/*not defined*/
+(Admin=true, r15=true & r38=true & r31=true, r41, true)	/*not defined*/
+(Admin=true, r54=true & r5=false & r53=true & r33=true & r36=true, r44, true)	/*not defined*/
+(Admin=true, r49=true & r4=false & r32=true, r5, true)	/*not defined*/
+(Admin=true, r38=true & r48=true & r14=true & r23=true, r67, true)	/*not defined*/
+(Admin=true, r58=true & r51=true, r24, true)	/*not defined*/
+(Admin=true, r26=true & r64=true, r37, true)	/*not defined*/
+(Admin=true, r1=true & r62=true & r32=false & r36=true & r14=true, r65, true)	/*not defined*/
+(Admin=true, r62=true & r21=false & r14=true & r32=true, r67, true)	/*not defined*/
+(Admin=true, r56=true & r30=true & r4=false, r31, true)	/*not defined*/
+(Admin=true, r60=true & r38=false, r62, true)	/*not defined*/
+(Admin=true, r6=true & r20=false & r27=false & r54=false & r23=true, r61, true)	/*not defined*/
+(Admin=true, r0=false & r62=true, r4, true)	/*not defined*/
+(Admin=true, r37=false & r17=false & r11=false & r68=true, r47, true)	/*not defined*/
+(Admin=true, r58=true & r32=false & r42=true & r38=true & r19=true, r33, true)	/*not defined*/
+(Admin=true, r43=true & r21=false, r25, true)	/*not defined*/
+(Admin=true, r38=true, r0, true)	/*not defined*/
+(Admin=true, r38=true & r44=true & r0=true & r22=false & r23=true, r36, true)	/*not defined*/
+(Admin=true, TRUE, r22, false)	/*not defined*/
+(Admin=true, r15=true & r14=false & r38=true & r41=true, r22, true)	/*not defined*/
+(Admin=true, TRUE, r10, false)	/*not defined*/
+(Admin=true, TRUE, r46, false)	/*not defined*/
+(Admin=true, TRUE, r34, false)	/*not defined*/
+(Admin=true, r2=false & r58=true & r21=true & r23=true, r12, true)	/*not defined*/
+(Admin=true, TRUE, r58, false)	/*not defined*/
+(Admin=true, r30=true & r23=true, r52, true)	/*not defined*/
+(Admin=true, r26=true & r2=false & r31=true, r30, true)	/*not defined*/
+(Admin=true, r69=true & r26=false, r66, true)	/*not defined*/
+(Admin=true, r43=true & r16=true, r25, true)	/*not defined*/
+(Admin=true, r35=false, r38, true)	/*not defined*/
+(Admin=true, r60=true & r37=true & r5=false, r27, true)	/*not defined*/
+(Admin=true, r44=true & r31=false, r54, true)	/*not defined*/
+(Admin=true, r0=false & r17=true, r6, true)	/*not defined*/
+(Admin=true, r11=true & r17=true & r5=false & r38=true & r55=true, r6, true)	/*not defined*/
+(Admin=true, r6=true & r26=true & r0=false & r64=true & r65=true, r55, true)	/*not defined*/
+(Admin=true, TRUE, r33, false)	/*not defined*/
+(Admin=true, r44=true & r38=true, r53, true)	/*not defined*/
+(Admin=true, r9=false & r14=false & r38=true & r4=false, r36, true)	/*not defined*/
+(Admin=true, TRUE, r21, false)	/*not defined*/
+(Admin=true, TRUE, r57, false)	/*not defined*/
+(Admin=true, TRUE, r45, false)	/*not defined*/
+(Admin=true, TRUE, r69, false)	/*not defined*/
+(Admin=true, TRUE, r49, false)	/*not defined*/
+(Admin=true, r56=true & r37=true, r59, true)	/*not defined*/
+(Admin=true, r9=false & r58=true & r12=true & r23=true, r21, true)	/*not defined*/
+(Admin=true, r16=true & r22=false, r25, true)	/*not defined*/
+(Admin=true, r37=true & r5=false & r29=true & r36=true, r23, true)	/*not defined*/
+(Admin=true, r0=false & r58=true & r12=true & r17=false & r23=true, r21, true)	/*not defined*/
+(Admin=true, r26=true & r37=true & r64=true & r24=false, r30, true)	/*not defined*/
+(Admin=true, r0=false & r4=true & r38=true & r16=true, r1, true)	/*not defined*/
+(Admin=true, r30=false & r28=false & r44=true, r54, true)	/*not defined*/
+(Admin=true, r5=false & r58=true & r8=false & r21=true & r23=true & r6=false, r12, true)	/*not defined*/
+(Admin=true, r47=true & r21=false & r24=false & r68=true, r31, true)	/*not defined*/
+(Admin=true, r11=true & r47=true & r62=true & r38=true & r68=true, r55, true)	/*not defined*/
+(Admin=true, TRUE, r24, false)	/*not defined*/
+(Admin=true, TRUE, r12, false)	/*not defined*/
+(Admin=true, r26=true & r22=true & r58=true & r3=true, r2, true)	/*not defined*/
+(Admin=true, r30=true & r47=true & r24=true & r21=false & r31=true & r38=false, r51, true)	/*not defined*/
+(Admin=true, r5=false & r15=false & r23=true, r46, true)	/*not defined*/
+(Admin=true, TRUE, r48, false)	/*not defined*/
+(Admin=true, TRUE, r36, false)	/*not defined*/
+(Admin=true, r3=false & r59=true & r68=true, r28, true)	/*not defined*/
+(Admin=true, r30=true & r10=false & r11=false, r13, true)	/*not defined*/
+(Admin=true, r2=false & r65=true & r19=true, r9, true)	/*not defined*/
+(Admin=true, r44=true, r54, true)	/*not defined*/
+(Admin=true, r56=true, r15, true)	/*not defined*/
+(Admin=true, r37=true, r17, true)	/*not defined*/
+(Admin=true, r11=true & r19=true, r9, true)	/*not defined*/
+(Admin=true, r9=false & r0=false & r11=false & r23=true, r18, true)	/*not defined*/
+(Admin=true, r37=true & r29=true & r58=true & r8=false & r31=true & r41=true, r23, true)	/*not defined*/
+(Admin=true, r65=true & r3=false, r9, true)	/*not defined*/
+(Admin=true, r27=false & r28=false & r38=true & r40=false, r44, true)	/*not defined*/
+(Admin=true, r56=true & r2=false & r15=true & r31=true & r38=true & r23=true, r22, true)	/*not defined*/
+(Admin=true, r29=true & r8=false & r11=false, r35, true)	/*not defined*/
+(Admin=true, TRUE, r11, false)	/*not defined*/
+(Admin=true, r37=true & r54=false & r12=false & r31=true & r27=true & r11=false & r59=true, r60, true)	/*not defined*/
+(Admin=true, r47=true & r38=true & r3=false & r36=true & r41=true, r55, true)	/*not defined*/
+(Admin=true, TRUE, r35, false)	/*not defined*/
+(Admin=true, TRUE, r23, false)	/*not defined*/
+(Admin=true, TRUE, r59, false)	/*not defined*/
+(Admin=true, TRUE, r47, false)	/*not defined*/
+(Admin=true, TRUE, r39, false)	/*not defined*/
+(Admin=true, TRUE, r27, false)	/*not defined*/
+(Admin=true, r65=true & r67=true & r49=true & r38=true & r31=false, r32, true)	/*not defined*/
+(Admin=true, r44=true, r53, true)	/*not defined*/
+(Admin=true, r2=false & r58=true & r57=true, r34, true)	/*not defined*/
+(Admin=true, r12=false & r8=false & r11=false & r41=true & r23=true, r18, true)	/*not defined*/
+(Admin=true, r65=true & r7=false & r25=true & r15=false & r23=true, r16, true)	/*not defined*/
+(Admin=true, r68=true, r31, true)	/*not defined*/
+(Admin=true, r37=true & r23=false & r31=true, r26, true)	/*not defined*/
+(Admin=true, r58=true & r57=true & r24=false & r23=true, r34, true)	/*not defined*/
+(Admin=true, r35=true & r23=true, r29, true)	/*not defined*/
+(Admin=true, r31=true & r3=false & r68=true, r64, true)	/*not defined*/
+(Admin=true, r26=true & r37=true & r21=false & r68=true, r30, true)	/*not defined*/
+(Admin=true, r38=true, r4, true)	/*not defined*/
+(Admin=true, r37=true & r68=true, r26, true)	/*not defined*/
+(Admin=true, r30=true & r37=true & r31=false & r23=true & r59=true, r60, true)	/*not defined*/
+(Admin=true, TRUE, r26, false)	/*not defined*/
+(Admin=true, TRUE, r14, false)	/*not defined*/
+(Admin=true, TRUE, r38, false)	/*not defined*/
+(Admin=true, r12=false & r55=true, r13, true)	/*not defined*/
+(Admin=true, r56=true & r37=true, r26, true)	/*not defined*/
+(Admin=true, r20=false & r13=true & r67=true & r49=true & r14=true & r23=true, r32, true)	/*not defined*/
+(Admin=true, r56=true & r55=true & r4=false, r47, true)	/*not defined*/
+(Admin=true, r62=true & r32=true & r14=true, r5, true)	/*not defined*/
+(Admin=true, r13=true & r52=false & r62=true & r49=true & r48=true, r67, true)	/*not defined*/
+(Admin=true, r40=true & r7=false & r8=false & r10=false & r59=true, r17, true)	/*not defined*/
+(Admin=true, r16=false & r11=true & r65=true & r38=true, r19, true)	/*not defined*/
+(Admin=true, TRUE, r13, false)	/*not defined*/
+(Admin=true, r36=false & r23=true, r68, true)	/*not defined*/
+(Admin=true, TRUE, r37, false)	/*not defined*/
+(Admin=true, r60=true, r27, true)	/*not defined*/
+(Admin=true, TRUE, r25, false)	/*not defined*/
+(Admin=true, TRUE, r17, false)	/*not defined*/
+(Admin=true, r22=true, r19, true)	/*not defined*/
+(Admin=true, TRUE, r29, false)	/*not defined*/
+(Admin=true, r30=true & r16=false & r26=true & r64=true & r7=false, r63, true)	/*not defined*/
+(Admin=true, r39=true & r56=true & r69=true, r47, true)	/*not defined*/
+(Admin=true, r25=true, r43, true)	/*not defined*/
+(Admin=true, r40=false & r23=true, r61, true)	/*not defined*/
+(Admin=true, r56=true & r40=true & r52=true & r4=false, r17, true)	/*not defined*/
+(Admin=true, r69=true & r23=false, r45, true)	/*not defined*/
+(Admin=true, r56=true & r64=true & r5=false & r1=false & r41=true, r8, true)	/*not defined*/
+(Admin=true, r58=true & r12=true & r23=true, r21, true)	/*not defined*/
+(Admin=true, r56=true & r37=true & r31=true & r59=true, r64, true)	/*not defined*/
+(Admin=true, r22=true & r38=true & r3=true, r2, true)	/*not defined*/
+(Admin=true, r17=true & r51=true & r68=true, r39, true)	/*not defined*/
+(Admin=true, r64=true & r17=true & r30=false & r59=true & r23=true & r68=true, r37, true)	/*not defined*/
+(Admin=true, r13=true, r67, true)	/*not defined*/
+(Admin=true, r36=true & r36=false, r50, true)	/*not defined*/
+(Admin=true, TRUE, r28, false)	/*not defined*/
+(Admin=true, TRUE, r16, false)	/*not defined*/
+(Admin=true, r58=true & r38=true & r23=true, r2, true)	/*not defined*/
+(Admin=true, r30=true, r63, true)	/*not defined*/
+(Admin=true, r13=true & r1=true & r49=true, r4, true)	/*not defined*/
+(Admin=true, r38=true & r20=true & r68=true, r42, true)	/*not defined*/
+(Admin=true, r12=true & r23=true, r21, true)	/*not defined*/
+(Admin=true, r13=true & r32=true & r14=true, r62, true)	/*not defined*/
+(Admin=true, r69=true & r44=false, r66, true)	/*not defined*/
+(Admin=true, r6=true, r61, true)	/*not defined*/
+(Admin=true, r26=true & r34=true & r41=true & r23=true, r57, true)	/*not defined*/
+(Admin=true, r60=true, r37, true)	/*not defined*/
+(Admin=true, TRUE, r15, false)	/*not defined*/
+(Admin=true, r65=true & r33=true & r38=true & r3=true, r36, true)	/*not defined*/
+(Admin=true, r56=true & r26=true & r16=false & r37=true & r19=false, r31, true)	/*not defined*/
+(Admin=true, TRUE, r19, false)	/*not defined*/
+(Admin=true, r1=false & r38=true & r20=true, r6, true)	/*not defined*/
+(Admin=true, r37=true & r64=true & r5=false & r23=true & r68=true, r52, true)	/*not defined*/
+(Admin=true, r20=true, r39, true)	/*not defined*/
+(Admin=true, r54=true & r12=false & r33=true & r38=true & r40=false, r44, true)	/*not defined*/
+(Admin=true, r60=true & r18=true & r10=false & r3=false & r52=true & r59=true, r23, true)	/*not defined*/
+(Admin=true, r30=true & r58=true & r15=true & r62=true & r38=true & r68=true, r55, true)	/*not defined*/
+(Admin=true, r5=false & r15=true & r42=true, r11, true)	/*not defined*/
+(Admin=true, r2=false & r62=true & r38=true & r68=true & r14=true, r13, true)	/*not defined*/
+(Admin=true, r22=true & r48=true & r23=true, r55, true)	/*not defined*/
+(Admin=true, r68=true, r59, true)	/*not defined*/
+(Admin=true, r30=true & r64=true & r12=false & r47=false, r56, true)	/*not defined*/
+(Admin=true, r30=true & r20=false & r22=true & r31=true, r68, true)	/*not defined*/
+(Admin=true, r56=true & r37=true & r64=true & r68=true, r30, true)	/*not defined*/
+(Admin=true, r58=true & r33=true & r38=true & r69=false, r0, true)	/*not defined*/
+(Admin=true, r26=true, r31, true)	/*not defined*/
+(Admin=true, TRUE, r18, false)	/*not defined*/
+(Admin=true, r26=true & r34=true & r56=false, r57, true)	/*not defined*/
+(Admin=true, r25=false & r22=true & r31=true & r38=true & r68=true & r59=true & r6=false, r26, true)	/*not defined*/
+(Admin=true, r15=true & r42=true & r53=false & r17=false, r63, true)	/*not defined*/
+(Admin=true, r55=false & r15=true & r32=false & r40=false & r23=true, r57, true)	/*not defined*/
+(Admin=true, r22=true & r15=true & r42=true & r63=true, r41, true)	/*not defined*/
+(Admin=true, r20=false & r44=true, r54, true)	/*not defined*/
+(Admin=true, r69=true & r41=false & r21=false & r6=false, r45, true)	/*not defined*/
+(Admin=true, r7=false & r58=true & r21=true & r4=false & r11=false & r23=true, r12, true)	/*not defined*/
+(Admin=true, r69=true & r7=false & r4=false, r10, true)	/*not defined*/
+(Admin=true, r60=true & r37=true & r6=false, r27, true)	/*not defined*/
+(Admin=true, r33=false & r67=true & r49=true & r11=false, r62, true)	/*not defined*/
+(Admin=true, r9=false & r17=true & r42=true & r3=false & r4=false, r20, true)	/*not defined*/
+(Admin=true, r60=true & r37=true & r26=false, r27, true)	/*not defined*/
+(Admin=true, r56=true & r23=true & r68=true & r6=false, r64, true)	/*not defined*/
+(Admin=true, r69=true & r10=false & r11=false, r45, true)	/*not defined*/
+(Admin=true, r7=false & r25=true & r34=false & r16=true, r43, true)	/*not defined*/
+(Admin=true, r30=true & r37=true & r64=true & r41=true & r59=true, r8, true)	/*not defined*/
+(Admin=true, r39=true & r64=true & r51=true, r47, true)	/*not defined*/
+(Admin=true, r64=true, r8, true)	/*not defined*/
+(Admin=true, r47=false & r23=true & r59=true, r52, true)	/*not defined*/
+(Admin=true, r69=true & r4=false, r10, true)	/*not defined*/
+(Admin=true, r60=true & r11=false, r27, true)	/*not defined*/
+(Admin=true, r30=true & r0=false & r5=false & r7=false & r41=true, r8, true)	/*not defined*/
+(Admin=true, r26=true & r64=true & r31=true & r45=false & r51=false, r59, true)	/*not defined*/
+(Admin=true, r30=true & r38=true & r4=false & r41=true, r15, true)	/*not defined*/
+(Admin=true, r16=false, r24, true)	/*not defined*/
+(Admin=true, r9=false & r11=true & r1=false & r38=true & r41=true, r19, true)	/*not defined*/
+(Admin=true, r60=true & r6=false, r27, true)	/*not defined*/
+(Admin=true, r38=true, r6, true)	/*not defined*/
+(Admin=true, r26=true & r22=true & r23=true, r7, true)	/*not defined*/
+(Admin=true, r51=true & r31=true & r13=false, r39, true)	/*not defined*/
+(Admin=true, r16=false & r13=true & r41=true & r23=true, r38, true)	/*not defined*/
+(Admin=true, r60=true & r26=true & r43=false & r31=true & r68=true, r56, true)	/*not defined*/
+(Admin=true, r30=true & r10=false & r32=true, r52, true)	/*not defined*/
+(Admin=true, r25=false & r1=true & r62=true & r38=true & r36=true, r65, true)	/*not defined*/
+(Admin=true, r40=true, r17, true)	/*not defined*/
+(Admin=true, r12=false & r62=true & r3=false, r13, true)	/*not defined*/
+(Admin=true, r1=false & r31=true, r28, true)	/*not defined*/
+(Admin=true, r17=true & r21=false & r6=false, r40, true)	/*not defined*/
+(Admin=true, r37=true & r67=true & r8=false, r13, true)	/*not defined*/
+(Admin=true, r29=false & r23=true, r52, true)	/*not defined*/
+(Admin=true, r13=true & r7=false & r49=true & r32=true, r48, true)	/*not defined*/
+(Admin=true, r62=true & r67=true & r49=true, r5, true)	/*not defined*/
+(Admin=true, r55=false & r67=true & r38=true & r32=true, r62, true)	/*not defined*/
+(Admin=true, r37=true & r64=true & r7=false & r31=true & r4=false, r8, true)	/*not defined*/
+(Admin=true, r41=true & r23=true, r18, true)	/*not defined*/
+(Admin=true, r7=false, r9, true)	/*not defined*/
+(Admin=true, r5=false & r38=true, r9, true)	/*not defined*/
+(Admin=true, r58=true & r57=true & r11=false & r23=true, r34, true)	/*not defined*/
+(Admin=true, r67=true & r32=true, r13, true)	/*not defined*/
+(Admin=true, r26=true, r64, true)	/*not defined*/
+(Admin=true, r15=true, r58, true)	/*not defined*/
+(Admin=true, r38=true, r53, true)	/*not defined*/
+(Admin=true, r38=true, r65, true)	/*not defined*/
+(Admin=true, r58=true & r7=false & r55=true & r23=true, r15, true)	/*not defined*/
+(Admin=true, r65=true & r15=true & r38=true, r11, true)	/*not defined*/
+(Admin=true, r69=true & r6=false, r45, true)	/*not defined*/
+(Admin=true, r58=true & r4=false & r23=true, r34, true)	/*not defined*/
+(Admin=true, r30=true & r39=true & r2=false & r49=true & r8=false & r59=true, r17, true)	/*not defined*/
+(Admin=true, r23=true, r16, true)	/*not defined*/
+(Admin=true, r0=false & r38=true & r10=false & r4=false, r32, true)	/*not defined*/
+(Admin=true, r11=true & r58=true, r19, true)	/*not defined*/
+(Admin=true, r26=true & r22=true & r3=false & r41=true & r23=true, r7, true)	/*not defined*/
+(Admin=true, r62=true & r1=false & r32=true, r49, true)	/*not defined*/
+(Admin=true, r55=true & r61=true, r6, true)	/*not defined*/
+(Admin=true, r1=false & r10=false & r16=true & r13=false & r6=false, r25, true)	/*not defined*/
+(Admin=true, r1=false, r20, true)	/*not defined*/
+(Admin=true, r20=false & r69=true, r45, true)	/*not defined*/
+(Admin=true, r60=true & r16=false & r37=true & r4=false, r27, true)	/*not defined*/
+(Admin=true, r58=true & r57=true, r34, true)	/*not defined*/
+(Admin=true, r62=true & r23=false & r38=true, r48, true)	/*not defined*/
+(Admin=true, r38=true & r2=true, r3, true)	/*not defined*/
+(Admin=true, r65=true & r58=true & r38=true & r36=true, r3, true)	/*not defined*/
+(Admin=true, r29=true & r10=false, r35, true)	/*not defined*/
+(Admin=true, r26=true & r56=true & r31=true, r68, true)	/*not defined*/
+(Admin=true, r23=true, r29, true)	/*not defined*/
+(Admin=true, r58=true, r24, true)	/*not defined*/
+(Admin=true, r17=true & r38=true & r61=true, r6, true)	/*not defined*/
+(Admin=true, r13=true & r65=true & r3=false & r14=true, r48, true)	/*not defined*/
+(Admin=true, r5=false & r23=true, r12, true)	/*not defined*/
+(Admin=true, r65=true, r33, true)	/*not defined*/
+(Admin=true, r6=true & r23=true, r61, true)	/*not defined*/
+(Admin=true, r56=true & r67=true & r41=false & r38=true & r52=true & r22=false, r49, true)	/*not defined*/
+(Admin=true, r56=true & r64=true & r68=true, r28, true)	/*not defined*/
+(Admin=true, r13=true & r26=true & r62=true & r48=true & r32=true, r49, true)	/*not defined*/
+(Admin=true, r60=true & r39=false & r23=true, r52, true)	/*not defined*/
+(Admin=true, r60=true & r37=true & r8=false, r27, true)	/*not defined*/
+(Admin=true, r27=false & r49=true & r21=false & r38=true & r48=true & r14=true, r32, true)	/*not defined*/
+(Admin=true, r22=true & r1=false & r28=false & r38=true, r42, true)	/*not defined*/
+(Admin=true, r67=true & r23=true, r5, true)	/*not defined*/
+(Admin=true, r37=true & r10=false, r26, true)	/*not defined*/
+(Admin=true, r43=true & r3=false & r16=true, r25, true)	/*not defined*/
+(Admin=true, r2=false & r54=false & r62=true & r28=false & r14=true & r32=true, r67, true)	/*not defined*/
+(Admin=true, TRUE, r0, false)	/*not defined*/
+(Admin=true, r64=true & r42=true & r41=true, r15, true)	/*not defined*/
+(Admin=true, r38=true & r23=true, r16, true)	/*not defined*/
+(Admin=true, r56=true & r39=true & r0=false & r11=true & r37=true & r2=false & r23=true, r17, true)	/*not defined*/
+(Admin=true, r5=false & r1=false & r38=true & r20=true & r61=true, r6, true)	/*not defined*/
+(Admin=true, r26=true & r0=false & r3=true, r2, true)	/*not defined*/
+(Admin=true, r17=true & r26=false, r40, true)	/*not defined*/
+(Admin=true, r26=true & r37=true & r38=true & r23=true, r41, true)	/*not defined*/
+(Admin=true, r55=false, r64, true)	/*not defined*/
+(Admin=true, r2=false & r58=true & r38=true & r63=true & r41=true, r22, true)	/*not defined*/
+(Admin=true, r69=true, r66, true)	/*not defined*/
+(Admin=true, r25=false & r44=true, r54, true)	/*not defined*/
+(Admin=true, r35=false & r38=true & r3=false & r36=true, r50, true)	/*not defined*/
+(Admin=true, r11=true & r37=true & r59=true, r17, true)	/*not defined*/
+(Admin=true, r14=false & r3=false, r40, true)	/*not defined*/
+(Admin=true, TRUE, r1, false)	/*not defined*/
+(Admin=true, r62=true & r32=true, r67, true)	/*not defined*/
+(Admin=true, r29=false & r6=true & r23=true, r61, true)	/*not defined*/
+(Admin=true, r0=false & r38=true & r3=true, r2, true)	/*not defined*/
+(Admin=true, r26=true, r7, true)	/*not defined*/
+(Admin=true, r54=true & r33=true, r44, true)	/*not defined*/
+(Admin=true, r13=true & r37=false & r61=false & r26=false & r14=true, r62, true)	/*not defined*/
+(Admin=true, r0=false & r38=true & r2=true, r3, true)	/*not defined*/
+(Admin=true, r69=true & r2=false, r10, true)	/*not defined*/
+(Admin=true, r4=false & r23=true, r46, true)	/*not defined*/
+(Admin=true, r15=true & r41=true & r7=true, r22, true)	/*not defined*/
+(Admin=true, r17=true & r47=true & r31=true & r31=false & r6=false, r39, true)	/*not defined*/
+(Admin=true, r15=true & r11=false & r21=true & r23=true, r58, true)	/*not defined*/
+(Admin=true, r28=false & r17=false & r52=true & r23=true & r32=true, r60, true)	/*not defined*/
+(Admin=true, r30=true & r27=false, r31, true)	/*not defined*/
+(Admin=true, r69=true, r45, true)	/*not defined*/
+(Admin=true, r30=true & r68=true & r59=true, r37, true)	/*not defined*/
+(Admin=true, r26=true & r58=true & r15=true & r38=true, r41, true)	/*not defined*/
+(Admin=true, r13=true & r67=true & r58=true & r36=true & r42=false & r23=true, r55, true)	/*not defined*/
+(Admin=true, r64=true, r68, true)	/*not defined*/
+(Admin=true, r64=true, r56, true)	/*not defined*/
+(Admin=true, r56=true & r64=true & r51=true & r55=true & r23=true, r47, true)	/*not defined*/
+(Admin=true, TRUE, r2, false)	/*not defined*/
+(Admin=true, r65=true, r14, true)	/*not defined*/
+(Admin=true, r33=false & r53=true & r62=true & r58=true & r55=true & r36=true & r41=true, r38, true)	/*not defined*/
+(Admin=true, r38=true & r63=true & r48=true & r41=true & r23=true & r68=true & r32=true, r42, true)	/*not defined*/
+(Admin=true, r6=true & r17=true, r20, true)	/*not defined*/
+(Admin=true, r38=true & r59=true, r23, true)	/*not defined*/
+(Admin=true, r4=true, r32, true)	/*not defined*/
+(Admin=true, r60=true & r26=true & r13=true & r30=true & r5=false & r48=true, r14, true)	/*not defined*/
+(Admin=true, r33=false & r35=false & r48=true & r23=true & r14=true, r55, true)	/*not defined*/
+(Admin=true, r53=true & r58=true & r38=true, r55, true)	/*not defined*/
+(Admin=true, r8=false & r68=true, r38, true)	/*not defined*/
+(Admin=true, r43=true & r0=false & r19=false & r16=true, r25, true)	/*not defined*/
+(Admin=true, r37=true & r27=true & r52=true & r32=true & r23=true, r60, true)	/*not defined*/
+(Admin=true, r34=false & r36=true, r44, true)	/*not defined*/
+(Admin=true, TRUE, r3, false)	/*not defined*/
+(Admin=true, r54=true & r33=true & r38=true, r44, true)	/*not defined*/
+(Admin=true, r58=true & r57=true & r4=false & r23=true, r34, true)	/*not defined*/
+(Admin=true, r64=true & r8=false, r15, true)	/*not defined*/
+(Admin=true, r69=true & r27=false & r44=false, r66, true)	/*not defined*/
+(Admin=true, r20=false & r15=true & r41=true, r22, true)	/*not defined*/
+(Admin=true, r23=true, r18, true)	/*not defined*/
+(Admin=true, r47=true & r58=true & r51=true & r36=false, r69, true)	/*not defined*/
+(Admin=true, r16=false & r23=false & r38=true & r36=true, r50, true)	/*not defined*/
+(Admin=true, r11=true & r67=true & r38=true & r36=true & r14=true, r65, true)	/*not defined*/
+(Admin=true, TRUE, r4, false)	/*not defined*/
+(Admin=true, r69=true & r42=false & r6=false, r45, true)	/*not defined*/
+(Admin=true, r30=true & r37=true & r64=true, r31, true)	/*not defined*/
+(Admin=true, r22=true, r38, true)	/*not defined*/
+(Admin=true, r0=false & r58=true & r23=true, r12, true)	/*not defined*/
+(Admin=true, r29=false & r42=true, r46, true)	/*not defined*/
+(Admin=true, r69=true, r10, true)	/*not defined*/
+(Admin=true, r33=false & r44=false & r51=true, r69, true)	/*not defined*/
+(Admin=true, r61=false, r62, true)	/*not defined*/
+(Admin=true, r43=false & r38=true, r58, true)	/*not defined*/
+(Admin=true, r13=true & r56=true & r17=true & r41=false & r23=true, r52, true)	/*not defined*/
+(Admin=true, r68=true, r30, true)	/*not defined*/
+(Admin=true, r39=false & r25=true & r16=true & r40=false, r43, true)	/*not defined*/
+(Admin=true, r27=false & r67=true & r15=true & r31=true & r38=true & r53=false, r55, true)	/*not defined*/
+(Admin=true, r26=true & r48=true, r14, true)	/*not defined*/
+(Admin=true, TRUE, r5, false)	/*not defined*/
+(Admin=true, r16=true, r25, true)	/*not defined*/
+(Admin=true, r56=true & r37=true & r58=true & r67=true & r38=true, r23, true)	/*not defined*/
+(Admin=true, r30=true & r64=true & r59=true, r28, true)	/*not defined*/
+(Admin=true, r11=true & r65=true & r42=true & r36=true, r19, true)	/*not defined*/
+(Admin=true, r55=true, r6, true)	/*not defined*/
+(Admin=true, r58=true & r57=true & r23=true, r34, true)	/*not defined*/
+(Admin=true, r26=true & r31=true & r41=true & r68=true, r63, true)	/*not defined*/
+(Admin=true, r53=true & r30=false & r38=true & r36=true, r44, true)	/*not defined*/
+(Admin=true, r56=true & r64=true & r59=true, r37, true)	/*not defined*/
+(Admin=true, r13=true & r67=true & r49=true & r32=true, r62, true)	/*not defined*/
+(Admin=true, TRUE, r6, false)	/*not defined*/
+(Admin=true, r26=true & r37=false & r15=true & r38=true, r41, true)	/*not defined*/
+(Admin=true, r41=true & r23=true, r57, true)	/*not defined*/
+(Admin=true, r9=false & r60=true & r10=false & r13=false, r27, true)	/*not defined*/
+(Admin=true, r7=false & r24=true & r23=true, r29, true)	/*not defined*/
+(Admin=true, r17=true, r39, true)	/*not defined*/
+(Admin=true, r0=false & r22=true & r38=true, r11, true)	/*not defined*/
+(Admin=true, r63=true, r41, true)	/*not defined*/
+(Admin=true, r13=true & r62=true & r49=true & r48=true, r4, true)	/*not defined*/
+(Admin=true, r65=true & r14=false & r3=false & r11=false & r23=true, r16, true)	/*not defined*/
+(Admin=true, r37=true & r59=true, r28, true)	/*not defined*/
+(Admin=true, r51=true & r31=true & r68=true, r47, true)	/*not defined*/
+(Admin=true, r16=true, r43, true)	/*not defined*/
+(Admin=true, TRUE, r7, false)	/*not defined*/
+(Admin=true, r30=true & r23=false & r51=true & r31=true & r68=true, r47, true)	/*not defined*/
+(Admin=true, r5=false & r38=true, r24, true)	/*not defined*/
+(Admin=true, r30=true & r0=false & r33=true & r14=false & r38=true, r58, true)	/*not defined*/
+(Admin=true, r29=true & r14=false, r35, true)	/*not defined*/
+(Admin=true, r37=true & r2=false & r15=false & r31=true & r59=true, r26, true)	/*not defined*/
+(Admin=true, r58=true & r33=true & r1=false & r38=true & r13=false, r19, true)	/*not defined*/
+(Admin=true, r56=true & r13=false, r26, true)	/*not defined*/
+(Admin=true, r43=false & r44=true, r54, true)	/*not defined*/
+(Admin=true, r0=false, r3, true)	/*not defined*/
+(Admin=true, r43=true & r65=true & r7=false & r25=true & r38=true & r11=false & r23=true, r16, true)	/*not defined*/
+(Admin=true, r56=true & r26=true & r22=true & r14=false & r42=true & r68=true, r63, true)	/*not defined*/
+(Admin=true, r13=true & r48=true, r32, true)	/*not defined*/
+(Admin=true, r56=true, r63, true)	/*not defined*/
+(Admin=true, TRUE, r60, false)	/*not defined*/
+(Admin=true, r38=true & r3=false, r6, true)	/*not defined*/
+(Admin=true, r1=false & r3=true & r23=true, r2, true)	/*not defined*/
+(Admin=true, TRUE, r8, false)	/*not defined*/
+(Admin=true, r48=true, r4, true)	/*not defined*/
+(Admin=true, r26=true & r37=true & r68=true, r56, true)	/*not defined*/
+(Admin=true, r36=true, r50, true)	/*not defined*/
+(Admin=true, TRUE, r9, false)	/*not defined*/
+(Admin=true, r30=true & r64=true & r31=true & r68=true, r56, true)	/*not defined*/
+(Admin=true, r16=false & r29=true & r58=true, r24, true)	/*not defined*/
+(Admin=true, r17=false, r51, true)	/*not defined*/
+(Admin=true, r6=true, r17, true)	/*not defined*/
+(Admin=true, r26=true & r30=true & r32=false & r31=true & r38=true & r28=false, r64, true)	/*not defined*/
+(Admin=true, r58=true & r1=false & r38=true & r2=true, r3, true)	/*not defined*/
+(Admin=true, r60=true & r12=false & r38=true & r59=true, r23, true)	/*not defined*/
+(Admin=true, r1=false, r7, true)	/*not defined*/
+(Admin=true, r30=true & r35=false & r64=true & r21=false, r68, true)	/*not defined*/
+(Admin=true, r6=true & r7=false & r42=true & r36=true, r20, true)	/*not defined*/
+(Admin=true, r30=true & r22=true & r38=true, r55, true)	/*not defined*/
+(Admin=true, r60=true & r37=true & r2=false & r29=true & r59=true, r23, true)	/*not defined*/
+(Admin=true, r1=false & r38=true & r55=true, r36, true)	/*not defined*/
+(Admin=true, r17=true & r4=false, r40, true)	/*not defined*/
+(Admin=true, r33=true & r58=true & r38=true & r28=false, r55, true)	/*not defined*/
+(Admin=true, r39=true & r42=true, r20, true)	/*not defined*/
+(Admin=true, r67=true & r49=true, r48, true)	/*not defined*/
+(Admin=true, r65=true & r38=true & r3=true & r23=true, r36, true)	/*not defined*/
+(Admin=true, r6=true & r17=true & r42=true & r36=true, r20, true)	/*not defined*/
+(Admin=true, r26=true & r0=false & r51=true, r68, true)	/*not defined*/
+(Admin=true, r11=true & r65=true & r38=true & r19=true, r9, true)	/*not defined*/
+(Admin=true, r30=true & r31=true & r68=true, r56, true)	/*not defined*/
+(Admin=true, r13=true & r67=true & r41=false & r48=true & r51=false, r62, true)	/*not defined*/
+(Admin=true, TRUE, r62, false)	/*not defined*/
+(Admin=true, r14=false & r23=true, r29, true)	/*not defined*/
+(Admin=true, r54=true & r33=true & r38=true & r10=false, r44, true)	/*not defined*/
+(Admin=true, TRUE, r50, false)	/*not defined*/
+(Admin=true, r1=false & r3=true, r2, true)	/*not defined*/
+(Admin=true, r4=true & r67=true & r38=true & r14=true & r32=true, r1, true)	/*not defined*/
+(Admin=true, r30=true & r18=false & r37=true & r64=true & r49=true & r32=true, r52, true)	/*not defined*/
+(Admin=true, r13=true & r62=true & r36=false & r32=true & r23=true, r49, true)	/*not defined*/
+(Admin=true, r9=false & r12=false & r23=true, r18, true)	/*not defined*/
+(Admin=true, r67=true & r49=true, r13, true)	/*not defined*/
+(Admin=true, r37=true, r59, true)	/*not defined*/
+(Admin=true, r5=false & r62=true & r49=true & r14=true, r48, true)	/*not defined*/
+(Admin=true, r26=true & r7=false & r42=true & r55=true & r23=true, r41, true)	/*not defined*/
+(Admin=true, r23=false, r51, true)	/*not defined*/
+(Admin=true, r42=true, r46, true)	/*not defined*/
+(Admin=true, r1=true & r62=true & r1=false & r48=true, r4, true)	/*not defined*/
+(Admin=true, r23=true & r14=true & r32=true, r52, true)	/*not defined*/
+(Admin=true, r1=false & r38=true, r2, true)	/*not defined*/
+(Admin=true, r23=true, r12, true)	/*not defined*/
+(Admin=true, TRUE, r61, false)	/*not defined*/
+(Admin=true, r26=true & r3=false & r41=true & r23=true, r7, true)	/*not defined*/
+(Admin=true, r57=true & r23=true, r34, true)	/*not defined*/
+(Admin=true, r38=true, r11, true)	/*not defined*/
+(Admin=true, r56=true, r68, true)	/*not defined*/
+(Admin=true, r38=true & r36=true & r31=false, r50, true)	/*not defined*/
+(Admin=true, r69=true & r0=false, r10, true)	/*not defined*/
+(Admin=true, r44=false & r38=true, r53, true)	/*not defined*/
+(Admin=true, r23=true, r46, true)	/*not defined*/
+(Admin=true, r38=true & r44=true & r55=true, r53, true)	/*not defined*/
+(Admin=true, r22=true & r41=true, r7, true)	/*not defined*/
+(Admin=true, r39=true & r51=true & r8=false & r55=true & r38=false, r47, true)	/*not defined*/
+(Admin=true, r13=true & r17=true & r67=true & r38=true & r17=false & r14=true, r32, true)	/*not defined*/
+(Admin=true, r20=false & r60=true & r29=true & r58=true & r1=false, r23, true)	/*not defined*/
+(Admin=true, TRUE, r40, false)	/*not defined*/
+(Admin=true, r49=true & r28=false & r23=true, r52, true)	/*not defined*/
+(Admin=true, r56=true & r37=true & r64=true, r31, true)	/*not defined*/
+(Admin=true, r67=true, r5, true)	/*not defined*/
+(Admin=true, TRUE, r64, false)	/*not defined*/
+(Admin=true, TRUE, r52, false)	/*not defined*/
+(Admin=true, r23=true & r14=true, r5, true)	/*not defined*/
+(Admin=true, r58=true & r3=false & r41=true & r22=false, r57, true)	/*not defined*/
+(Admin=true, r13=true & r25=false & r67=true & r38=true, r65, true)	/*not defined*/
+(Admin=true, r38=true, r36, true)	/*not defined*/
+(Admin=true, r29=true & r52=true & r6=false, r23, true)	/*not defined*/
+(Admin=true, r30=false & r58=true & r57=true & r8=false & r23=true, r34, true)	/*not defined*/
+(Admin=true, r42=true, r20, true)	/*not defined*/
+(Admin=true, r13=false, r16, true)	/*not defined*/
+(Admin=true, r6=true & r39=true & r17=true & r12=false & r10=false & r36=true, r20, true)	/*not defined*/
+(Admin=true, r39=true, r17, true)	/*not defined*/
+(Admin=true, r1=false & r38=true & r3=true, r2, true)	/*not defined*/
+(Admin=true, r16=false & r25=false & r29=true, r35, true)	/*not defined*/
+(Admin=true, r17=true, r20, true)	/*not defined*/
+(Admin=true, r58=true & r33=true & r38=true & r36=true, r0, true)	/*not defined*/
+(Admin=true, r56=true, r42, true)	/*not defined*/
+(Admin=true, r64=true & r31=true & r68=true, r56, true)	/*not defined*/
+(Admin=true, r33=false & r25=true & r4=false & r16=true, r43, true)	/*not defined*/
+(Admin=true, TRUE, r51, false)	/*not defined*/
+(Admin=true, TRUE, r63, false)	/*not defined*/
+(Admin=true, r8=false & r23=true, r29, true)	/*not defined*/
+(Admin=true, r29=false & r48=true & r56=false & r32=true, r62, true)	/*not defined*/
+(Admin=true, r2=false & r23=true, r5, true)	/*not defined*/;
+
+Spec
+(u1, r65 = true);

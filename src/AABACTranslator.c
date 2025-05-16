@@ -9,7 +9,7 @@ static void computeAttrDom(AABACInstance *pInst) {
     Rule *pRule;
     HashNodeIterator *itMap;
     HashNode *node;
-    HashSet *pSetValIdxes, **ppSetValIdxes;
+    HashSet **ppSetValIdxes;
     while (itSet1->HasNext(itSet1)) {
         ruleIdx = *(int *)itSet1->GetNext(itSet1);
         pRule = iVector.GetElement(pVecRules, ruleIdx);
@@ -19,11 +19,6 @@ static void computeAttrDom(AABACInstance *pInst) {
             pAttrIdx = (int *)node->key;
             ppSetValIdxes = iHashMap.Get(pInst->pmapAttr2Dom, pAttrIdx);
             assert(ppSetValIdxes != NULL);
-            // if (ppSetValIdxes == NULL) {
-            //     pSetValIdxes = iHashSet.Create(sizeof(int), IntHashCode, IntEqual);
-            //     ppSetValIdxes = &pSetValIdxes;
-            //     iHashMap.Put(pInst->pmapAttr2Dom, pAttrIdx, ppSetValIdxes);
-            // }
             itSet2 = iHashSet.NewIterator(*(HashSet **)node->value);
             while (itSet2->HasNext(itSet2)) {
                 iHashSet.Add(*ppSetValIdxes, itSet2->GetNext(itSet2));
@@ -122,7 +117,6 @@ void translateInitState(AABACInstance *pInst, FILE *fp) {
     HashMap *avsOfUser = iHashBasedTable.GetRow(pInst->pTableInitState, &pInst->queryUserIdx);
     int *pAttrIdx, valIdx;
     AttrType attrType;
-    char *attr;
     HashNode *node;
     HashNodeIterator *itMap = iHashMap.NewIterator(pInst->pmapAttr2Dom);
     while (itMap->HasNext(itMap)) {

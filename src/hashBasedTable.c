@@ -28,7 +28,7 @@ static int Put(HashBasedTable *hashTable, void *rowKey, void *colKey, void *valu
 }
 
 static void *Get(HashBasedTable *hashTable, void *rowKey, void *colKey) {
-    HashMap *pColMap, **ppColMap = iHashMap.Get(hashTable->pRowMap, rowKey);
+    HashMap **ppColMap = iHashMap.Get(hashTable->pRowMap, rowKey);
     if (ppColMap == NULL) {
         return NULL;
     }

@@ -112,8 +112,6 @@ AttrType getAttrTypeByIdx(int attrIdx);
  ***************************************************************************************************/
 char *getValueByIndex(AttrType attrType, int valueIdx);
 
-char* getAttributeDefaultValue(char *attr);
-
 int getInitValue(AABACInstance *pInst, int userIdx, int attrIdx);
 
 int addUAV(AABACInstance *pInst, char *user, char *attr, char *value);

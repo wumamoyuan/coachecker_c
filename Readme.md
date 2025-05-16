@@ -10,9 +10,8 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
 
 1. Clone the repository
 2. Make sure you have the required dependencies:
-   - NuSMV or nuXmv
    - C compiler (gcc recommended)
-3. Download <a href="https://nuxmv.fbk.eu/download.html">nuXmv</a> 
+3. Download [nuXmv](https://nuxmv.fbk.eu/download.html)
    ```bash
    cd coachecker_c
    wget -O nuXmv.tar.xz https://nuxmv.fbk.eu/theme/download.php?file=nuXmv-2.1.0-linux64.tar.xz
@@ -26,16 +25,28 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
 
 ## Usage
 
-To analyze an ACoAC policy file:
+1. To analyze an ACoAC policy file and set the timeout threshold (in seconds):
+   ```bash
+   ./coachecker -model_checker <nuXmv_path> -input <policy_file> -timeout <timeout_threshold>
+   ```
 
-```bash
-./coachecker -model_checker <nuXmv_path> -input <policy_file>
-```
+   Example:
+   ```bash
+   ./coachecker -model_checker ../nuXmv/bin/nuXmv -input ../demo/test1.aabac -timeout 60
+   ```
+   For more options, please see the help message:
+   ```bash
+   ./coachecker -h
+   ```
+2. To evaluate the performance of CoAChecker:
+   
+   Download the dataset from [here]()
 
-Example:
-```bash
-./coachecker -model_checker ../nuXmv/bin/nuXmv -input ../demo/test1.aabac
-```
+   ```bash
+   cd ../ACoAC-Dataset
+   ```
+
+
 
 ## Project Structure
 

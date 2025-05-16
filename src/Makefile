@@ -1,7 +1,28 @@
-objects := coachecker.o precheck.o AABACTranslator.o AABACAbsRef.o AABACSlice.o AABACReader.o AABACWriter.o AABACInstance.o AABACRule.o AABACResult.o AABACUtils.o hashSet.o hashMap.o hashBasedTable.o bn_java.o test.o
+CC = gcc
+CFLAGS = -Wall -Wextra -I.
+LDFLAGS = -L../lib -ll
 
-coachecker: ${objects} ../lib/libccl.a
-	cc -static ${objects} ../lib/libccl.a -o ../bin/coachecker 
+# 获取所有.c文件
+SRCS = $(wildcard *.c)
+OBJS = $(SRCS:.c=.o)
 
+# 目标可执行文件
+TARGET = ../bin/coachecker
+
+# 默认目标
+all: $(TARGET)
+
+# 链接规则
+$(TARGET): $(OBJS)
+	@mkdir -p ../bin
+	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+
+# 编译规则
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# 清理规则
 clean:
-	rm -rf ${objects} ../bin/coachecker
+	rm -f $(OBJS) $(TARGET)
+
+.PHONY: all clean

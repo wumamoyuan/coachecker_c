@@ -1,9 +1,0 @@
-In this version, the initial rules are stored in the vector "pVecRules", where each element is a rule, not a pointer. 
-
-In a instance, the set of rules "pSetRuleIdxes" only stores the rule's index in the vector "pVecRules".
-
-
-CoAChecker is an safety analyzer for ACoAC policies.
-
-
-./verifier.sh ./demo/test1.aabac

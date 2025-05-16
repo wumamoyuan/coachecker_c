@@ -2,4 +2,5 @@
 /.vscode
 /data
 /logs
-/bin
+/bin/coachecker
+/bin/nuXmv

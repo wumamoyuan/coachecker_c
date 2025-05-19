@@ -44,7 +44,13 @@ extern HashMap *pmapAttr2DefVal;
     
 extern Vector *pVecRules;
 
+void initGlobalVars();
+
+void finalizeGlobalVars();
+
 AABACInstance *createAABACInstance();
+
+void finalizeAABACInstance(AABACInstance *pInst);
 
 /****************************************************************************************************
  * 功能：获取用户在用户表中的索引

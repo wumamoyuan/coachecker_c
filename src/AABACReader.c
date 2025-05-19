@@ -383,7 +383,9 @@ static int handleRule(AABACInstance *pInst, char *line) {
         logAABAC(__func__, __LINE__, 0, ERROR, "Failed to handle rule: (%s, %s, %s, %s)\n", adminCondStr, userCondStr, attr, value);
         exit(ret);
     }
-    Rule *r = iRule.Create(handleCondition(adminCondStr), handleCondition(userCondStr), attrIdx, valueIdx);    
+    HashSet *adminCond = handleCondition(adminCondStr);
+    HashSet *userCond = handleCondition(userCondStr);
+    Rule *r = iRule.Create(adminCond, userCond, attrIdx, valueIdx);    
     iVector.Add(pVecRules, r);
     free(r);
     int ruleIdx = iVector.Size(pVecRules) - 1;
@@ -433,6 +435,7 @@ static int handleSpec(AABACInstance *pInst, char *line) {
                 }
                 iHashMap.Put(pInst->pmapQueryAVs, &attrIdx, &valueIdx);
                 logAABAC(__func__, __LINE__, 0, INFO, "add query attribute: %s, value: %s\n", attr, value);
+                free(value);
             }
             if (toBreak) {
                 break;
@@ -503,6 +506,9 @@ AABACInstance *readAABACInstance(char *aabacFilePath) {
         printf("Error opening file: %s\n", aabacFilePath);
         return NULL;
     }
+    
+    // 初始化全局变量
+    initGlobalVars();
     AABACInstance *pInst = createAABACInstance();
 
     // 0: initial, 1: users, 2: attributes, 3: default value, 4: UAV, 5: rules,

@@ -237,7 +237,8 @@ static int compareMagnitude(BigInteger n, BigInteger m) {
     if (n.magLen > m.magLen) {
         return 1;
     }
-    for (int i = n.magLen - 1; i >= 0; i--) {
+    int i;
+    for (i = n.magLen - 1; i >= 0; i--) {
         if (n.mag[i] < m.mag[i]) {
             return -1;
         }
@@ -265,7 +266,8 @@ static uint32_t *addArray(uint32_t *xMag, int xlen, uint32_t *yMag, int ylen, in
     uint64_t sum;
     int carry = 0;
     // 从低位开始相加
-    for (int i = 0; i < minLen; i++) {
+    int i;
+    for (i = 0; i < minLen; i++) {
         // 将xMag的每一位，yMag的每一位，以及上一位的进位相加
         sum = (uint64_t)xMag[i] + (uint64_t)yMag[i] + carry;
         // 将sum的低32位赋值给z的当前位
@@ -274,7 +276,7 @@ static uint32_t *addArray(uint32_t *xMag, int xlen, uint32_t *yMag, int ylen, in
         carry = sum > MAX_VAL;
     }
     uint32_t *mag = xlen > ylen ? xMag : yMag;
-    for (int i = minLen; i < zLen - 1; i++) {
+    for (i = minLen; i < zLen - 1; i++) {
         sum = (uint64_t)mag[i] + carry;
         zMag[i] = (uint32_t)(sum & MAX_VAL);
         carry = sum > MAX_VAL;
@@ -353,7 +355,8 @@ static BigInteger add(BigInteger n, BigInteger m) {
         magLen = tmp->magLen;
         if (tmp->magLen > 0) {
             mag = (uint32_t *)malloc(magLen * sizeof(uint32_t));
-            for (int i = 0; i < magLen; i++) {
+            int i;
+            for (i = 0; i < magLen; i++) {
                 mag[i] = tmp->mag[i];
             }
         }
@@ -398,7 +401,8 @@ static BigInteger subtract(BigInteger n, BigInteger m) {
         magLen = tmp->magLen;
         if (tmp->magLen > 0) {
             mag = (uint32_t *)malloc(magLen * sizeof(uint32_t));
-            for (int i = 0; i < magLen; i++) {
+            int i;
+            for (i = 0; i < magLen; i++) {
                 mag[i] = tmp->mag[i];
             }
         }
@@ -570,17 +574,18 @@ static BigInteger getLower(BigInteger x, int n) {
     uint32_t *mag;
     int magLen;
 
+    int i;
     if (x.magLen <= n) {
         magLen = x.magLen;
         mag = (uint32_t *)malloc(magLen * sizeof(uint32_t));
-        for (int i = 0; i < magLen; i++) {
+        for (i = 0; i < magLen; i++) {
             mag[i] = x.mag[i];
         }
         return (BigInteger){1, magLen, mag};
     }
 
     mag = (uint32_t *)malloc(n * sizeof(uint32_t));
-    for (int i = 0; i < n; i++) {
+    for (i = 0; i < n; i++) {
         mag[i] = x.mag[i];
         if (mag[i] != 0) {
             magLen = i + 1;
@@ -605,7 +610,8 @@ static BigInteger getUpper(BigInteger x, int n) {
     int nonZeroIndex = 0;
     int upperLen = x.magLen - n;
     uint32_t *upperInts = (uint32_t *)malloc(upperLen * sizeof(uint32_t));
-    for (int i = 0; i < upperLen; i++) {
+    int i;
+    for (i = 0; i < upperLen; i++) {
         upperInts[i] = x.mag[i + n];
         if (upperInts[i] != 0) {
             nonZeroIndex = i;

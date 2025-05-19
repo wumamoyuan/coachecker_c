@@ -78,6 +78,7 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
         logAABAC(__func__, __LINE__, 0, INFO, "preCheck failed\n");
     }
     pInst = userCleaning(pInst);
+    char *writePath;
 
     AABACResult result = {.code = AABAC_RESULT_UNKNOWN};
     if (doSlicing) {
@@ -87,10 +88,8 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
             return result;
         }
 
-        char *writePath = (char *)malloc(strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN + AABAC_SUFFIX_LEN + 1);
-        memcpy(writePath, logDir, strlen(logDir));
-        memcpy(writePath + strlen(logDir), SLICING_RESULT_FILE_NAME, SLICING_RESULT_FILE_NAME_LEN);
-        strcpy(writePath + strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN, AABAC_SUFFIX);
+        writePath = (char *)malloc(strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN + AABAC_SUFFIX_LEN + 1);
+        sprintf(writePath, "%s%s%s", logDir, SLICING_RESULT_FILE_NAME, AABAC_SUFFIX);
         writeAABACInstance(pInst, writePath);
         free(writePath);
     }
@@ -111,11 +110,8 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
     while (next != NULL) {
         sprintf(roundStr, "%d", pAbsRef->round);
         if (enableAbstractRefine) {
-            char *writePath = (char *)malloc(strlen(logDir) + ABSTRACTION_REFINEMENT_RESULT_FILE_NAME_LEN + strlen(roundStr) + AABAC_SUFFIX_LEN + 1);
-            memcpy(writePath, logDir, strlen(logDir));
-            memcpy(writePath + strlen(logDir), ABSTRACTION_REFINEMENT_RESULT_FILE_NAME, ABSTRACTION_REFINEMENT_RESULT_FILE_NAME_LEN);
-            memcpy(writePath + strlen(logDir) + ABSTRACTION_REFINEMENT_RESULT_FILE_NAME_LEN, roundStr, strlen(roundStr));
-            strcpy(writePath + strlen(logDir) + ABSTRACTION_REFINEMENT_RESULT_FILE_NAME_LEN + strlen(roundStr), AABAC_SUFFIX);
+            writePath = (char *)malloc(strlen(logDir) + ABSTRACTION_REFINEMENT_RESULT_FILE_NAME_LEN + strlen(roundStr) + AABAC_SUFFIX_LEN + 1);
+            sprintf(writePath, "%s%s%s%s", logDir, ABSTRACTION_REFINEMENT_RESULT_FILE_NAME, roundStr, AABAC_SUFFIX);
             writeAABACInstance(next, writePath);
             free(writePath);
 
@@ -131,11 +127,8 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
                     next = refine(pAbsRef);
                     continue;
                 }
-                char *writePath = (char *)malloc(strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN + strlen(roundStr) + AABAC_SUFFIX_LEN + 1);
-                memcpy(writePath, logDir, strlen(logDir));
-                memcpy(writePath + strlen(logDir), SLICING_RESULT_FILE_NAME, SLICING_RESULT_FILE_NAME_LEN);
-                memcpy(writePath + strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN, roundStr, strlen(roundStr));
-                strcpy(writePath + strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN + strlen(roundStr), AABAC_SUFFIX);
+                writePath = (char *)malloc(strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN + strlen(roundStr) + AABAC_SUFFIX_LEN + 1);
+                sprintf(writePath, "%s%s%s%s", logDir, SLICING_RESULT_FILE_NAME, roundStr, AABAC_SUFFIX);
                 writeAABACInstance(next, writePath);
                 free(writePath);
             }
@@ -143,10 +136,7 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
 
         // 将instance转化为NuSMV文件
         nusmvFilePath = (char *)malloc(strlen(logDir) + NUSMV_FILE_NAME_LEN + strlen(roundStr) + SMV_SUFFIX_LEN + 1);
-        memcpy(nusmvFilePath, logDir, strlen(logDir));
-        memcpy(nusmvFilePath + strlen(logDir), NUSMV_FILE_NAME, NUSMV_FILE_NAME_LEN);
-        memcpy(nusmvFilePath + strlen(logDir) + NUSMV_FILE_NAME_LEN, roundStr, strlen(roundStr));
-        strcpy(nusmvFilePath + strlen(logDir) + NUSMV_FILE_NAME_LEN + strlen(roundStr), SMV_SUFFIX);
+        sprintf(nusmvFilePath, "%s%s%s%s", logDir, NUSMV_FILE_NAME, roundStr, SMV_SUFFIX);
         if (translate(next, nusmvFilePath, doSlicing) != 0) {
             logAABAC(__func__, __LINE__, 0, ERROR, "failed to translate instance to nusmv file\n");
             result.code = AABAC_RESULT_ERROR;
@@ -156,10 +146,7 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
 
         // 调用model checker进行验证
         resultFilePath = (char *)malloc(strlen(logDir) + RESULT_FILE_NAME_LEN + strlen(roundStr) + RESULT_SUFFIX_LEN + 1);
-        memcpy(resultFilePath, logDir, strlen(logDir));
-        memcpy(resultFilePath + strlen(logDir), RESULT_FILE_NAME, RESULT_FILE_NAME_LEN);
-        memcpy(resultFilePath + strlen(logDir) + RESULT_FILE_NAME_LEN, roundStr, strlen(roundStr));
-        strcpy(resultFilePath + strlen(logDir) + RESULT_FILE_NAME_LEN + strlen(roundStr), RESULT_SUFFIX);
+        sprintf(resultFilePath, "%s%s%s%s", logDir, RESULT_FILE_NAME, roundStr, RESULT_SUFFIX);
 
         int tooLarge = 0;
         if (!useBMC) {

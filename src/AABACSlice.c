@@ -102,7 +102,8 @@ AABACInstance *userCleaning(AABACInstance *pInst) {
         psetAdminCond = pRule->adminCond;
         pEffective = iHashMap.Get(pmapAdminCond2Bool, &psetAdminCond);
         if (pEffective != NULL && *pEffective) {
-            pRule->adminCond = iHashSet.Create(sizeof(AtomCondition), iAtomCondition.HashCode, iAtomCondition.Equal);
+            // pRule->adminCond = iHashSet.Create(sizeof(AtomCondition), iAtomCondition.HashCode, iAtomCondition.Equal);
+            iHashSet.Clear(pRule->adminCond);
             addRule(pNewInst, ruleIdx);
         } else {
             effective = isEffective(pInst, psetAdminCond);
@@ -146,6 +147,8 @@ AABACInstance *userCleaning(AABACInstance *pInst) {
 
     // 4. 查询不变
     pNewInst->queryUserIdx = queryUserIdx;
+
+    iHashMap.Finalize(pNewInst->pmapQueryAVs);
     pNewInst->pmapQueryAVs = pInst->pmapQueryAVs;
 
     // 释放pInst
@@ -218,8 +221,11 @@ AABACInstance *ruleCleaning(AABACInstance *pInst, int *ruleCleaningCnt, int *pMo
         return pNewInst;
     }
 
-    logAABAC(__func__, __LINE__, 0, DEBUG, "current attribute domain: %s", mapToString(pmapAttrDom, IntToString, iHashSet.ToString));
-    HashSet *pVecToBeRemoved = iHashSet.Create(sizeof(int), IntHashCode, IntEqual);
+    char *attrDomStr = mapToString(pmapAttrDom, IntToString, iHashSet.ToString);
+    logAABAC(__func__, __LINE__, 0, DEBUG, "current attribute domain: %s", attrDomStr);
+    free(attrDomStr);
+
+    HashSet *pSetToBeRemoved = iHashSet.Create(sizeof(int), IntHashCode, IntEqual);
     HashNodeIterator *itAttrDom = iHashMap.NewIterator(pmapAttrDom);
     HashSet *pSetDom;
     int *pAttrIdx;
@@ -228,11 +234,11 @@ AABACInstance *ruleCleaning(AABACInstance *pInst, int *ruleCleaningCnt, int *pMo
         pAttrIdx = (int *)node->key;
         pSetDom = *(HashSet **)node->value;
         if (iHashSet.Size(pSetDom) == 1) {
-            iHashSet.Add(pVecToBeRemoved, pAttrIdx);
+            iHashSet.Add(pSetToBeRemoved, pAttrIdx);
         }
     }
     iHashMap.DeleteIterator(itAttrDom);
-    if (iHashSet.Size(pVecToBeRemoved) > 0) {
+    if (iHashSet.Size(pSetToBeRemoved) > 0) {
         // logAABAC(__func__, __LINE__, 0, DEBUG, "the attributes whose domain size is 1: %s", vecorToString(pVecToBeRemoved));
     }
 
@@ -241,13 +247,16 @@ AABACInstance *ruleCleaning(AABACInstance *pInst, int *ruleCleaningCnt, int *pMo
     Rule *pRule;
     HashSetIterator *itRuleIdxes = iHashSet.NewIterator(pInst->pSetRuleIdxes);
     int ruleIdx;
+    char *ruleStr;
     while (itRuleIdxes->HasNext(itRuleIdxes)) {
         ruleIdx = *(int *)itRuleIdxes->GetNext(itRuleIdxes);
         pRule = (Rule *)iVector.GetElement(pVecRules, ruleIdx);
         // 目标属性值域大小为1时，表示它永远不会变化，此时规则没有意义，不应当保留
-        if (iHashSet.Contains(pVecToBeRemoved, &pRule->targetAttrIdx)) {
+        if (iHashSet.Contains(pSetToBeRemoved, &pRule->targetAttrIdx)) {
             *pModification = 1;
-            logAABAC(__func__, __LINE__, 0, DEBUG, "because the size of domain of the target attribute is 1, the rule can be removed: %s\n", RuleToString(&pRule));
+            ruleStr = RuleToString(&pRule);
+            logAABAC(__func__, __LINE__, 0, DEBUG, "because the size of domain of the target attribute is 1, the rule can be removed: %s\n", ruleStr);
+            free(ruleStr);
             continue;
         }
         discreteResult = iRule.DiscreteCond(pRule, pmapAttrDom);
@@ -255,13 +264,17 @@ AABACInstance *ruleCleaning(AABACInstance *pInst, int *ruleCleaningCnt, int *pMo
             *pModification = 1;
         } else if (discreteResult == -1) {
             // 属性值域无法满足规则条件时，不保留该规则
-            logAABAC(__func__, __LINE__, 0, DEBUG, "the user condition can not be satisfied: %s\n", RuleToString(&pRule));
+            ruleStr = RuleToString(&pRule);
+            logAABAC(__func__, __LINE__, 0, DEBUG, "the user condition can not be satisfied: %s\n", ruleStr);
+            free(ruleStr);
             continue;
         }
         addRule(pNewInst, ruleIdx);
     }
+    iHashSet.DeleteIterator(itRuleIdxes);
 
     /*3.用户不需要清理*/
+    iVector.Finalize(pNewInst->pVecUserIdxes);
     pNewInst->pVecUserIdxes = pInst->pVecUserIdxes;
 
     /*4.清理初始属性值*/
@@ -269,12 +282,14 @@ AABACInstance *ruleCleaning(AABACInstance *pInst, int *ruleCleaningCnt, int *pMo
     while (itInitState->HasNext(itInitState)) {
         node = itInitState->GetNext(itInitState);
         pAttrIdx = (int *)node->key;
-        if (iHashSet.Contains(pVecToBeRemoved, pAttrIdx)) {
+        if (iHashSet.Contains(pSetToBeRemoved, pAttrIdx)) {
             *pModification = 1;
             continue;
         }
         addUAVByIdx(pNewInst, queryUserIdx, *pAttrIdx, *(int *)node->value);
     }
+    iHashSet.Finalize(pSetToBeRemoved);
+
     iHashMap.DeleteIterator(itInitState);
     iHashBasedTable.Finalize(pInst->pTableInitState);
 
@@ -461,10 +476,18 @@ static AABACInstance *forwardSlice(AABACInstance *pInst, int *forwardSlicingCnt,
     }
 
     // 设置新实例的其他属性
+    iHashMap.Finalize(pNewInst->pmapAttr2Dom);
     pNewInst->pmapAttr2Dom = pmapReachableAVs;
+    
+    iVector.Finalize(pNewInst->pVecUserIdxes);
     pNewInst->pVecUserIdxes = pInst->pVecUserIdxes;
+
+    iHashBasedTable.Finalize(pNewInst->pTableInitState);
     pNewInst->pTableInitState = pInst->pTableInitState;
+
     pNewInst->queryUserIdx = pInst->queryUserIdx;
+
+    iHashMap.Finalize(pNewInst->pmapQueryAVs);
     pNewInst->pmapQueryAVs = pInst->pmapQueryAVs;
 
     iHashMap.Finalize(pInst->pmapAttr2Dom);
@@ -528,7 +551,7 @@ AABACInstance *backwardSlice(AABACInstance *pInst, int *backwardSlicingCnt, int 
     AVP avp, avp2;
     Rule *pRule;
     int ruleIdx;
-    char *ruleStr;
+    char *ruleStr, *val;
     HashNodeIterator *itUserCondValue;
     HashSet **ppSetRuleIdxes, *pSetVals, **ppSetVals;
     HashSetIterator *itRuleIdxes, *itVals;
@@ -553,8 +576,10 @@ AABACInstance *backwardSlice(AABACInstance *pInst, int *backwardSlicingCnt, int 
             pRule = (Rule *)iVector.GetElement(pVecRules, ruleIdx);
             addRule(pNewInst, ruleIdx);
             ruleStr = RuleToString(&pRule);
-            logAABAC(__func__, __LINE__, 0, DEBUG, "rule %s is associated with (%s, %s)", ruleStr, istrCollection.GetElement(pscAttrs, avp.attrIdx), getValueByIndex(getAttrTypeByIdx(avp.attrIdx), avp.valIdx));
+            val = getValueByIndex(getAttrTypeByIdx(avp.attrIdx), avp.valIdx);
+            logAABAC(__func__, __LINE__, 0, DEBUG, "rule %s is associated with (%s, %s)", ruleStr, istrCollection.GetElement(pscAttrs, avp.attrIdx), val);
             free(ruleStr);
+            free(val);
             itUserCondValue = iHashMap.NewIterator(pRule->pmapUserCondValue);
             while (itUserCondValue->HasNext(itUserCondValue)) {
                 node = itUserCondValue->GetNext(itUserCondValue);
@@ -571,7 +596,7 @@ AABACInstance *backwardSlice(AABACInstance *pInst, int *backwardSlicingCnt, int 
         }
         iHashSet.DeleteIterator(itRuleIdxes);
     }
-    iList.Clear(pListStack);
+    iList.Finalize(pListStack);
     iHashSet.Finalize(pSetVisited);
 
     if (iHashSet.Size(pNewInst->pSetRuleIdxes) != iHashSet.Size(pInst->pSetRuleIdxes)) {
@@ -595,10 +620,18 @@ AABACInstance *backwardSlice(AABACInstance *pInst, int *backwardSlicingCnt, int 
 
     int nOldRules = iHashSet.Size(pInst->pSetRuleIdxes);
 
+    iHashMap.Finalize(pNewInst->pmapAttr2Dom);
     pNewInst->pmapAttr2Dom = pmapReachableAVs;
+
+    iVector.Finalize(pNewInst->pVecUserIdxes);
     pNewInst->pVecUserIdxes = pInst->pVecUserIdxes;
+
+    iHashBasedTable.Finalize(pNewInst->pTableInitState);
     pNewInst->pTableInitState = pInst->pTableInitState;
+
     pNewInst->queryUserIdx = pInst->queryUserIdx;
+
+    iHashMap.Finalize(pNewInst->pmapQueryAVs);
     pNewInst->pmapQueryAVs = pInst->pmapQueryAVs;
 
     iHashMap.Finalize(pInst->pmapAttr2Dom);

@@ -46,6 +46,7 @@ static void FindEffectiveValues(AtomCondition *atomdCond, HashSet *domain, HashS
             iHashSet.Add(effectiveValues, &valIdx);
         }
     }
+    iHashSet.DeleteIterator(it);
 }
 
 static void RetainEffectiveValues(AtomCondition *atomdCond, HashSet *effectiveValues) {
@@ -57,6 +58,7 @@ static void RetainEffectiveValues(AtomCondition *atomdCond, HashSet *effectiveVa
             it->Remove(it);
         }
     }
+    iHashSet.DeleteIterator(it);
 }
 
 static unsigned int AtomCondHashCode(void *obj) {

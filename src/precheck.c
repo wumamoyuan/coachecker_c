@@ -6,7 +6,8 @@ static AABACResult getReachableResultFromRules(AABACInstance *pInst, Vector *rul
     Rule *pRule;
     AdminstrativeAction action;
     AttrType attrType;
-    for (int i = 0; i < iVector.Size(ruleIdxes); i++) {
+    int i;
+    for (i = 0; i < iVector.Size(ruleIdxes); i++) {
         ruleIdx = *(int *)iVector.GetElement(ruleIdxes, i);
         pRule = (Rule *)iVector.GetElement(pVecRules, ruleIdx);
         

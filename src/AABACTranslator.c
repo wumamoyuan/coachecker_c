@@ -229,7 +229,8 @@ static void translateCanSetRules(AABACInstance *pInst, FILE *fp) {
                 free(ruleStr);
 
                 HashMap *condValues[2] = {pMapAdminCondValue, pRule->pmapUserCondValue};
-                for (int i = 0; i < 2; i++) {
+                int i;
+                for (i = 0; i < 2; i++) {
                     itMapCondValue = iHashMap.NewIterator(condValues[i]);
                     while (itMapCondValue->HasNext(itMapCondValue)) {
                         node = itMapCondValue->GetNext(itMapCondValue);

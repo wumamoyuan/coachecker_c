@@ -79,7 +79,8 @@ void insertDesc(int *array, int len, int n) {
             right = mid - 1;
         }
     }
-    for (int i = len; i > left; i--) {
+    int i;
+    for (i = len; i > left; i--) {
         array[i] = array[i - 1];
     }
     array[left] = n;

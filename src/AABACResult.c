@@ -36,8 +36,9 @@ void printResult(AABACResult result, int showRules) {
         int ruleIdx;
         char *rStr;
         Rule *pRule;
+        int i;
         if (showRules && result.pVecRules != NULL) {
-            for (int i = 0; i < iVector.Size(result.pVecActions); i++) {
+            for (i = 0; i < iVector.Size(result.pVecActions); i++) {
                 action = *(AdminstrativeAction *)iVector.GetElement(result.pVecActions, i);
                 ruleIdx = *(int *)iVector.GetElement(result.pVecRules, i);
                 printf("Step%d:\t", cnt++);
@@ -51,7 +52,7 @@ void printResult(AABACResult result, int showRules) {
                 printf("\n");
             }
         } else {
-            for (int i = 0; i < iVector.Size(result.pVecActions); i++) {
+            for (i = 0; i < iVector.Size(result.pVecActions); i++) {
                 action = *(AdminstrativeAction *)iVector.GetElement(result.pVecActions, i);
                 printf("Step%d:\t", cnt++);
                 printAction(action);

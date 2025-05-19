@@ -232,7 +232,8 @@ static void cloneRules(AbsRef *pAbsRef) {
     HashNode *node;
     HashSet *pSet;
     HashSetIterator *itSet;
-    for (int i = 0; i < nRules; i++) {
+    int i;
+    for (i = 0; i < nRules; i++) {
         pRule = iVector.GetElement(pAbsRef->pOriVecRules, i);
         iVector.Add(pVecNewRules, pRule);
         pNewRule = iVector.GetElement(pVecNewRules, i);

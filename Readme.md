@@ -10,7 +10,8 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
 
 1. Clone the repository
 2. Make sure you have the required dependencies:
-   - C compiler (gcc recommended)
+   - gcc
+   - CMake
 3. Download [nuXmv](https://nuxmv.fbk.eu/download.html)
    ```bash
    cd coachecker_c
@@ -19,13 +20,15 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
    ``` 
 4. Compile the project, the executable file will be in the bin directory
    ```bash
-   cd src
+   make build && cd build
+   cmake ../
    make
    ```
 
 ## Usage
 
-1. To analyze an ACoAC policy file and set the timeout threshold (in seconds):
+1. **To analyze an ACoAC policy file and set the timeout threshold (in seconds):**
+
    ```bash
    ./coachecker -model_checker <nuXmv_path> -input <policy_file> -timeout <timeout_threshold>
    ```
@@ -39,7 +42,25 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
    ./coachecker -h
    ```
 
-2. To determine the individual contribution of each component (*pruning*, *abstraction refinement*, and *bound estimation*):
+2. **To evaluate the impact of instance scale on the performance of pruning, abstraction refinement, and bound estimation:**
+   
+   - Download the [dataset](https://drive.google.com/uc?id=1htKafYP5mJkMHnmPpzJuMaVNe6q27XE3&export=download)
+
+      ```bash
+      cd coachecker_c
+      mkdir data && cd data
+      
+      ```
+   
+   - Run the following script and wait for it to complete
+
+      ```bash
+      cd coachecker_c/bin
+      nohup ./exp_scale.sh > exp_scale.log 2>&1 &
+      ```
+      
+
+3. **To determine the individual contribution of each component (*pruning*, *abstraction refinement*, and *bound estimation*):**
    
    - Download the [dataset]()
 
@@ -60,30 +81,20 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
       ```bash
       tail -f exp_ablation.log
       ```
-     
-     **Note.** The script may take a long time to complete because there are **200** instances in the dataset. For each instance, the script will run coachecker for **4** times with different configurations:  
-     - all components are enabled
-     - pruning is disabled
-     - abstraction refinement is disabled
-     - bound estimation is disabled
-     
-     For each run, the script sets the timeout threshold to **600** seconds. According to the test on a XX server, it requires about **10** hours to complete the experiments. To reduce the running time, it is recommended to set the timeout threshold to a smaller value.
    
-   - Analyze the output logs of coachecker in the folder "logs/exp_ablation"
+   - After the script completes, analyze the output logs of coachecker in the folder "logs/exp_ablation"
 
       ```bash
       ./analyze_ablation.sh
       ```
 
-      **Note.** The script should be run after the script "bin/exp_ablation.sh" completes.
-
-## Project Structure
-
-- `src/` - Source code
-- `bin/` - Compiled binaries
-- `lib/` - Library files
-- `demo/` - Demo files
-- `logs/` - Log files
+      **Note.** The script `analyze_ablation.sh` may take a long time to complete because there are **200** instances in the dataset. For each instance, the script will run coachecker for **4** times with different configurations:  
+      - all components are enabled
+      - pruning is disabled
+      - abstraction refinement is disabled
+      - bound estimation is disabled
+      
+      For each run, the script sets the timeout threshold to **600** seconds. According to the test on a XX server, it requires about **10** hours to complete the experiments. To reduce the running time, it is recommended to set the timeout threshold to a smaller value.
 
 ## License
 

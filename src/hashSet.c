@@ -39,6 +39,10 @@ static HashSetIterator *NewIterator(HashSet *hashSet) {
     return it;
 }
 
+static HashSetIterator *DeleteIterator(HashSetIterator *it) {
+    return iHashMap.DeleteIterator(it);
+}
+
 static int Contains(HashSet *hashSet, void *element) {
     return iHashMap.ContainsKey(hashSet, element);
 }
@@ -63,6 +67,7 @@ static int RetainAll(HashSet *hashSet1, HashSet *hashSet2) {
             modified = 1;
         }
     }
+    DeleteIterator(it);
     return modified;
 }
 
@@ -146,10 +151,6 @@ static char *ToString(void *pHashSet) {
     ret[cur++] = '\0';
     iHashSet.DeleteIterator(it);
     return ret;
-}
-
-static HashSetIterator *DeleteIterator(HashSetIterator *it) {
-    return iHashMap.DeleteIterator(it);
 }
 
 static KeyToString SetElementToString(HashSet *hashSet, KeyToString elementToString) {

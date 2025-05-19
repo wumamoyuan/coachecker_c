@@ -21,6 +21,9 @@ static int Put(HashBasedTable *hashTable, void *rowKey, void *colKey, void *valu
     HashMap *pColMap, **ppColMap = iHashMap.Get(hashTable->pRowMap, rowKey);
     if (ppColMap == NULL) {
         pColMap = iHashMap.Create(hashTable->colKeySize, hashTable->valueSize, hashTable->colHashCode, hashTable->colKeyEqual);
+        if (hashTable->destructValue != NULL) {
+            iHashMap.SetDestructValue(pColMap, hashTable->destructValue);
+        }
         ppColMap = &pColMap;
         iHashMap.Put(hashTable->pRowMap, rowKey, ppColMap);
     }
@@ -75,5 +78,4 @@ HashBasedTableInterface iHashBasedTable = {
     .SetDestructCol = SetDestructCol,
     .SetDestructValue = SetDestructValue,
     .Clear = Clear,
-    .Finalize = Finalize
-};
+    .Finalize = Finalize};

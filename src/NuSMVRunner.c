@@ -306,8 +306,9 @@ AABACResult analyzeModelCheckerOutput(char *output, AABACInstance *pInst, char *
         }
         iHashMap.DeleteIterator(itMap);
 
-        Vector *pVecRules = iVector.Create(sizeof(Rule), iVector.Size(pVecActions));    
-        for (int i = 0; i < iVector.Size(pVecActions); i++) {
+        Vector *pVecRules = iVector.Create(sizeof(Rule), iVector.Size(pVecActions));
+        int i;
+        for (i = 0; i < iVector.Size(pVecActions); i++) {
             AdminstrativeAction action = *(AdminstrativeAction *)iVector.GetElement(pVecActions, i);
             int ruleIdx = findRule(pMapState, pInst->pTableTargetAV2Rule, action);
             if (ruleIdx < 0) {

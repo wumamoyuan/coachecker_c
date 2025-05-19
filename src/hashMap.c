@@ -51,7 +51,8 @@ static unsigned int DefualtHashCode(void *key) {
     int pointerSize = sizeof(void *);
     char *keyPtr = (char *)&key;
     unsigned int hash = 0;
-    for (int i = 0; i < pointerSize; i++) {
+    int i;
+    for (i = 0; i < pointerSize; i++) {
         hash = (hash << 5) - hash + keyPtr[i]; // hash * 31 + key[i]
     }
     return hash;
@@ -71,7 +72,8 @@ static char *DefaultElementToString(void *keyOrValue) {
     int pointerSize = sizeof(void *);
     char *keyPtr = (char *)&keyOrValue;
     unsigned int hash = 0;
-    for (int i = 0; i < pointerSize; i++) {
+    int i;
+    for (i = 0; i < pointerSize; i++) {
         hash = (hash << 5) - hash + keyPtr[i]; // hash * 31 + key[i]
     }
     char *hashStr = (char *)malloc(16);
@@ -146,7 +148,8 @@ static HashNode **resize(HashMap *hashMap) {
     hashMap->table = newTab;
     hashMap->tableLen = newCap;
     if (oldTab != NULL) {
-        for (int j = 0; j < oldCap; ++j) {
+        int j;
+        for (j = 0; j < oldCap; ++j) {
             HashNode *e;
             if ((e = oldTab[j]) != NULL) {
                 oldTab[j] = NULL;
@@ -183,6 +186,7 @@ static HashNode **resize(HashMap *hashMap) {
                 }
             }
         }
+        free(oldTab);
     }
     return newTab;
 }
@@ -204,7 +208,8 @@ static int putVal(HashMap *hashMap, unsigned int hash, void *key, void *value, i
             ((k = p->key) == key || (key != NULL && hashMap->equal(key, k))))
             e = p;
         else {
-            for (int binCount = 0;; ++binCount) {
+            int binCount;
+            for (binCount = 0;; ++binCount) {
                 if ((e = p->next) == NULL) {
                     p->next = newNode(hash, key, hashMap->keySize, value, hashMap->valueSize, NULL);
                     /*if (binCount >= TREEIFY_THRESHOLD - 1)

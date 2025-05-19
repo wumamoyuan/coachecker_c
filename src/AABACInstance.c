@@ -55,6 +55,36 @@ static int RuleIdxEqual(void *pRuleIdx1, void *pRuleIdx2) {
     return iRule.Equal(pRule1, pRule2);
 }
 
+void initGlobalVars() {
+    pscUsers = istrCollection.Create(2);
+    pdictUser2Index = iDictionary.Create(sizeof(int), 2);
+    pscAttrs = istrCollection.Create(0);
+    pdictAttr2Index = iDictionary.Create(sizeof(int), 0);
+    pscValues = istrCollection.Create(0);
+    pdictValue2Index = iDictionary.Create(sizeof(int), 0);
+    pmapAttr2Type = iHashMap.Create(sizeof(int), sizeof(int), IntHashCode, IntEqual);
+    pmapAttr2DefVal = iHashMap.Create(sizeof(int), sizeof(int), IntHashCode, IntEqual);
+    pVecRules = iVector.Create(sizeof(Rule), 0);
+}
+
+void finalizeGlobalVars() {
+    istrCollection.Finalize(pscUsers);
+    iDictionary.Finalize(pdictUser2Index);
+    istrCollection.Finalize(pscAttrs);
+    iDictionary.Finalize(pdictAttr2Index);
+    istrCollection.Finalize(pscValues);
+    iDictionary.Finalize(pdictValue2Index);
+    iHashMap.Finalize(pmapAttr2Type);
+    iHashMap.Finalize(pmapAttr2DefVal);
+    for (int i = 0; i < iVector.Size(pVecRules); i++) {
+        Rule *pRule = (Rule *)iVector.GetElement(pVecRules, i);
+        iHashSet.Finalize(pRule->adminCond);
+        iHashSet.Finalize(pRule->userCond);
+        iHashMap.Finalize(pRule->pmapUserCondValue);
+    }
+    iVector.Finalize(pVecRules);
+}
+
 AABACInstance *createAABACInstance() {
     AABACInstance *pInst = (AABACInstance *)malloc(sizeof(AABACInstance));
     if (pInst == NULL) {
@@ -62,24 +92,10 @@ AABACInstance *createAABACInstance() {
         return NULL;
     }
 
-    // 初始化全局变量
-    if (!initialized) {
-        pscUsers = istrCollection.Create(2);
-        pdictUser2Index = iDictionary.Create(sizeof(int), 2);
-        pscAttrs = istrCollection.Create(0);
-        pdictAttr2Index = iDictionary.Create(sizeof(int), 0);
-        pscValues = istrCollection.Create(0);
-        pdictValue2Index = iDictionary.Create(sizeof(int), 0);
-        pmapAttr2Type = iHashMap.Create(sizeof(int), sizeof(int), IntHashCode, IntEqual);
-        pmapAttr2DefVal = iHashMap.Create(sizeof(int), sizeof(int), IntHashCode, IntEqual);
-        pVecRules = iVector.Create(sizeof(Rule), 0);
-        initialized = 1;
-    }
-
     pInst->pVecUserIdxes = iVector.Create(sizeof(int), 2);
 
     pInst->pmapAttr2Dom = iHashMap.Create(sizeof(int), sizeof(HashSet *), IntHashCode, IntEqual);
-    iHashMap.SetDestructValue(pInst->pmapAttr2Dom, iHashSet.DestructPointer);
+    iHashMap.SetDestructValue(pInst->pmapAttr2Dom, iHashSet.DestructPointer); //0xc72fd0
     pInst->pTableInitState = iHashBasedTable.Create(sizeof(int), sizeof(int), sizeof(int), IntHashCode, IntEqual, IntHashCode, IntEqual);
 
     pInst->pSetRuleIdxes = iHashSet.Create(sizeof(int), RuleIdxHashCode, RuleIdxEqual);
@@ -92,6 +108,16 @@ AABACInstance *createAABACInstance() {
     pInst->queryUserIdx = -1;
     pInst->pmapQueryAVs = iHashMap.Create(sizeof(int), sizeof(int), IntHashCode, IntEqual);
     return pInst;
+}
+
+void finalizeAABACInstance(AABACInstance *pInst) {
+    iVector.Finalize(pInst->pVecUserIdxes);
+    iHashMap.Finalize(pInst->pmapAttr2Dom);
+    iHashBasedTable.Finalize(pInst->pTableInitState);
+    iHashSet.Finalize(pInst->pSetRuleIdxes);
+    iHashBasedTable.Finalize(pInst->pTableTargetAV2Rule);
+    iHashBasedTable.Finalize(pInst->pTablePrecond2Rule);
+    iHashMap.Finalize(pInst->pmapQueryAVs);
 }
 
 char *attrIdxToString(void *pAttrIdx) {
@@ -509,9 +535,6 @@ void init(AABACInstance *pInst) {
     while (itRules->HasNext(itRules)) {
         ruleIdx = *(int *)itRules->GetNext(itRules);
         r = (Rule *)iVector.GetElement(pVecRules, ruleIdx);
-        if(r->targetAttrIdx == 5 && r->targetValueIdx == 1 && iHashSet.Size(r->userCond) == 1){
-            logAABAC(__func__, __LINE__, 0, DEBUG, "The rule is: %s\n", RuleToString(&r));
-        }
         if (iRule.DiscreteCond(r, pInst->pmapAttr2Dom) != -1) {
             iHashSet.Add(pSetNewRules, &ruleIdx);
         } else {

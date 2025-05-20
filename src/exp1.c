@@ -1,3 +1,4 @@
+#include "AABACAbsRef.h"
 #include "AABACIO.h"
 #include "AABACSlice.h"
 #include "AABACUtils.h"
@@ -9,221 +10,173 @@
 #include <unistd.h>
 
 /**
- * 计算Global Pruning Rate, 如果resultFile不为NULL，则将结果与剪枝耗时以"instFile,oldRuleNums,newRuleNums,GPR,time"的格式保存到resultFile
+ * 计算Global Pruning Rate和Local Pruning Rate
+ * 如果resultFile不为NULL，则将结果保存到resultFile中
  *
  * @param instFile 实例文件路径
  * @param resultFile 结果文件路径
  */
-void computeGPR(char *instFile, char *resultFile) {
+void computePR(char *instFile, char *resultFile) {
     AABACInstance *pInst = readAABACInstance(instFile);
     if (pInst == NULL) {
         printf("Failed to read instance file!\n");
         return;
     }
 
+    FILE *fp = NULL;
+    if (resultFile != NULL) {
+        if (access(resultFile, F_OK) == -1) {
+            // 如果resultFile不存在，则创建它，并写入表头
+            fp = fopen(resultFile, "w");
+            fprintf(fp, "instFile,GPR_oldRuleNums,GPR_newRuleNums,GPR,LPR_oldRuleNums,LPR_newRuleNums,LPR\n");
+        } else {
+            fp = fopen(resultFile, "a");
+        }
+        if (fp == NULL) {
+            printf("Failed to open result file!\n");
+            return;
+        }
+    }
+
     init(pInst);
-    clock_t startTime = clock();
 
-    // 记录原始规则数
-    int nRulesOld = iHashSet.Size(pInst->pSetRuleIdxes);
+    // 记录global pruning前的规则数
+    int nRulesBeforeGP = iHashSet.Size(pInst->pSetRuleIdxes);
 
-    // 进行剪枝，记录剪枝后的规则数
-    int nRulesNew = 0;
+    // 进行global pruning
     pInst = userCleaning(pInst);
     AABACResult result = {.code = AABAC_RESULT_UNKNOWN};
     pInst = slice(pInst, &result);
-    if (result.code != AABAC_RESULT_REACHABLE && result.code != AABAC_RESULT_UNREACHABLE) {
-        nRulesNew = iHashSet.Size(pInst->pSetRuleIdxes);
+
+    if (result.code == AABAC_RESULT_REACHABLE || result.code == AABAC_RESULT_UNREACHABLE) {
+        // 如果global pruning后即可判断实例的可达性，说明所有规则均为冗余，剪枝后规则数为0，并且不需要进行local pruning
+        int nRulesAfterGP = 0;
+        double GPR = (nRulesBeforeGP - nRulesAfterGP) * 100.0 / nRulesBeforeGP;
+        logAABAC(__func__, __LINE__, 0, INFO, "oldRuleNums => %d, newRuleNums => %d, GPR => %.2f%%\n", nRulesBeforeGP, nRulesAfterGP, GPR);
+        if (fp != NULL) {
+            fprintf(fp, "%s,%d,%d,%.2f%%,-,-,-\n", instFile, nRulesBeforeGP, nRulesAfterGP, GPR);
+            fclose(fp);
+        }
+        return;
     }
 
-    // 计算GPR的百分数
-    double GPR = (nRulesOld - nRulesNew) * 100.0 / nRulesOld;
-    logAABAC(__func__, __LINE__, 0, INFO, "oldRuleNums => %d, newRuleNums => %d, GPR => %.2f%%\n", nRulesOld, nRulesNew, GPR);
+    // 记录剪枝后的规则数
+    int nRulesAfterGP = iHashSet.Size(pInst->pSetRuleIdxes);
+    double gpr = (nRulesBeforeGP - nRulesAfterGP) * 100.0 / nRulesBeforeGP;
 
-    // 将结果与剪枝耗时以"instFile, GPR, time"的格式保存到resultFile
-    double time = (double)(clock() - startTime) / CLOCKS_PER_SEC * 1000;
+    // 进行local pruning
+    int cnt = 0;
+    int capacity = 10;
+    int *nRulesBeforeLP = (int *)malloc(capacity * sizeof(int));
+    int *nRulesAfterLP = (int *)malloc(capacity * sizeof(int));
 
-    if (resultFile != NULL) {
-        // 如果resultFile不存在，则创建它，并写入表头
-        if (access(resultFile, F_OK) == -1) {
-            FILE *fp = fopen(resultFile, "w");
-            fprintf(fp, "instFile,oldRuleNums,newRuleNums,GPR,time\n");
-            fprintf(fp, "%s,%d,%d,%.2f%%,%.2fms\n", instFile, nRulesOld, nRulesNew, GPR, time);
-            fclose(fp);
+    AbsRef *pAbsRef = createAbsRef(pInst);
+    AABACInstance *next = abstract(pAbsRef);
+    while (next != NULL) {
+        if (cnt >= capacity) {
+            capacity *= 2;
+            nRulesBeforeLP = (int *)realloc(nRulesBeforeLP, capacity * sizeof(int));
+            nRulesAfterLP = (int *)realloc(nRulesAfterLP, capacity * sizeof(int));
+        }
+        nRulesBeforeLP[cnt] = iHashSet.Size(next->pSetRuleIdxes);
+        result = (AABACResult){.code = AABAC_RESULT_UNKNOWN};
+        next = slice(next, &result);
+
+        if (result.code == AABAC_RESULT_REACHABLE) {
+            nRulesAfterLP[cnt] = 0;
+            cnt++;
+            break;
+        } else if (result.code == AABAC_RESULT_UNREACHABLE) {
+            nRulesAfterLP[cnt] = 0;
         } else {
-            FILE *fp = fopen(resultFile, "a");
-            fprintf(fp, "%s,%d,%d,%.2f%%,%.2fms\n", instFile, nRulesOld, nRulesNew, GPR, time);
-            fclose(fp);
+            nRulesAfterLP[cnt] = iHashSet.Size(next->pSetRuleIdxes);
         }
+
+        if (result.code != AABAC_RESULT_REACHABLE && result.code != AABAC_RESULT_UNREACHABLE) {
+            nRulesAfterLP[cnt] = iHashSet.Size(next->pSetRuleIdxes);
+        } else {
+            nRulesAfterLP[cnt] = 0;
+        }
+        cnt++;
+        next = refine(pAbsRef);
+    }
+
+    int i;
+    double averageLPR = 0;
+    for (i = 0; i < cnt; i++) {
+        averageLPR += (nRulesBeforeLP[i] - nRulesAfterLP[i]) * 100.0 / nRulesBeforeLP[i];
+    }
+    averageLPR /= cnt;
+    logAABAC(__func__, __LINE__, 0, INFO, "oldRuleNums => %d, newRuleNums => %d, GPR => %.2f%%, averageLPR => %.2f%%\n", nRulesBeforeGP, nRulesAfterGP, gpr, averageLPR);
+
+    if (fp != NULL) {
+        fprintf(fp, "%s,%d,%d,%.2f%%,", instFile, nRulesBeforeGP, nRulesAfterGP, gpr);
+        for (i = 0; i < cnt; i++) {
+            fprintf(fp, i == 0 ? "%d" : "-%d", nRulesBeforeLP[i]);
+        }
+        fprintf(fp, ",");
+        for (i = 0; i < cnt; i++) {
+            fprintf(fp, i == 0 ? "%d" : "-%d", nRulesAfterLP[i]);
+        }
+        fprintf(fp, ",%.2f%%\n", averageLPR);
+        fclose(fp);
     }
 }
 
-void computeStatsAttrQueryVal(char *statisticsFilePath) {
-    FILE *fp = fopen(statisticsFilePath, "r");
-    if (fp == NULL) {
-        printf("Statistics file not found!\n");
-        return;
-    }
-
-    int nq = 5, nv = 10, ninst = 50;
-    int oldRuleNums[nq][nv][ninst];
-    int newRuleNums[nq][nv][ninst];
-
-    // 用正则表达式匹配实例文件名
-    char *pattern = "MC5-Q([0-9]+)-A60-R3000+/V([0-9]+)/test([0-9]+).aabac";
-    regex_t regex;
-    regcomp(&regex, pattern, REG_EXTENDED);
-    regmatch_t pmatch[4];
-
-    int q, v, id;
-    char qStr[10], vStr[10], idStr[10];
-    char *instFile, *oldRuleNumStr, *newRuleNumStr;
-
-    char line[1024];
-    // 跳过表头
-    fgets(line, sizeof(line), fp);
-
-    int lineNum = 1;
-    while (fgets(line, sizeof(line), fp) != NULL) {
-        lineNum++;
-        instFile = strtok(line, ",");
-        oldRuleNumStr = strtok(NULL, ",");
-        newRuleNumStr = strtok(NULL, ",");
-
-        // 解析instFile
-        if (regexec(&regex, instFile, 4, pmatch, 0) == 0) {
-            memcpy(qStr, instFile + pmatch[1].rm_so, pmatch[1].rm_eo - pmatch[1].rm_so);
-            qStr[pmatch[1].rm_eo - pmatch[1].rm_so] = '\0';
-            memcpy(vStr, instFile + pmatch[2].rm_so, pmatch[2].rm_eo - pmatch[2].rm_so);
-            vStr[pmatch[2].rm_eo - pmatch[2].rm_so] = '\0';
-            memcpy(idStr, instFile + pmatch[3].rm_so, pmatch[3].rm_eo - pmatch[3].rm_so);
-            idStr[pmatch[3].rm_eo - pmatch[3].rm_so] = '\0';
-            q = atoi(qStr);
-            v = atoi(vStr);
-            id = atoi(idStr);
-
-            if (q > 0 && q <= nq && v > 0 && v <= nv * 10 && id > 0 && id <= ninst) {
-                oldRuleNums[q - 1][v / 10 - 1][id - 1] = atoi(oldRuleNumStr);
-                newRuleNums[q - 1][v / 10 - 1][id - 1] = atoi(newRuleNumStr);
-            } else {
-                printf("Invalid instance file: %s, in line %d\n", instFile, lineNum);
-                exit(1);
-            }
-        }
-    }
-
-    int oldRuleNum, newRuleNum;
-    double sumPruningRate;
-    double rateList[nv];
-    for (q = 1; q <= nq; q++) {
-        for (v = 1; v <= nv; v++) {
-            // 计算平均剪枝率
-            sumPruningRate = 0;
-            for (int i = 1; i <= ninst; i++) {
-                oldRuleNum = oldRuleNums[q - 1][v - 1][i - 1];
-                newRuleNum = newRuleNums[q - 1][v - 1][i - 1];
-                sumPruningRate += (oldRuleNum - newRuleNum) * 100.0 / oldRuleNum;
-            }
-            rateList[v - 1] = sumPruningRate / ninst;
-        }
-
-        // 将dlist中的内容以百分比形式打印出来，保留两位小数，每打印一个数字换一行，不用逗号隔开
-        printf("MC5-Q%d-A60-R3000", q);
-        for (int i = 0; i < nv; i++) {
-            printf(",%.2f%%", rateList[i]);
-        }
-        printf("\n");
-    }
+double computeGPRFromString(char *oldRuleNumStr, char *newRuleNumStr) {
+    int oldRuleNum = atoi(oldRuleNumStr);
+    int newRuleNum = atoi(newRuleNumStr);
+    return (oldRuleNum - newRuleNum) * 100.0 / oldRuleNum;
 }
 
-void computeStatsMaxCondVal(char *statisticsFilePath) {
-    FILE *fp = fopen(statisticsFilePath, "r");
-    if (fp == NULL) {
-        printf("Statistics file not found!\n");
-        return;
+double computeLPRFromString(char *oldRuleNumStr, char *newRuleNumStr) {
+    if (strcmp(oldRuleNumStr, "-") == 0) {
+        return -1;
     }
 
-    int nmc = 4, nv = 10, ninst = 50;
-    int oldRuleNums[nmc][nv][ninst];
-    int newRuleNums[nmc][nv][ninst];
-
-    // 用正则表达式匹配实例文件名
-    char *pattern = "MC([0-9]+)-Q1-A90-R3000+/V([0-9]+)/test([0-9]+).aabac";
-    regex_t regex;
-    regcomp(&regex, pattern, REG_EXTENDED);
-    regmatch_t pmatch[4];
-
-    int mc, v, id;
-    char mcStr[10], vStr[10], idStr[10];
-    char *instFile, *oldRuleNumStr, *newRuleNumStr;
-
-    char line[1024];
-    // 跳过表头
-    fgets(line, sizeof(line), fp);
-
-    int lineNum = 1;
-    while (fgets(line, sizeof(line), fp) != NULL) {
-        lineNum++;
-        instFile = strtok(line, ",");
-        oldRuleNumStr = strtok(NULL, ",");
-        newRuleNumStr = strtok(NULL, ",");
-
-        // 解析instFile
-        if (regexec(&regex, instFile, 4, pmatch, 0) == 0) {
-            memcpy(mcStr, instFile + pmatch[1].rm_so, pmatch[1].rm_eo - pmatch[1].rm_so);
-            mcStr[pmatch[1].rm_eo - pmatch[1].rm_so] = '\0';
-            memcpy(vStr, instFile + pmatch[2].rm_so, pmatch[2].rm_eo - pmatch[2].rm_so);
-            vStr[pmatch[2].rm_eo - pmatch[2].rm_so] = '\0';
-            memcpy(idStr, instFile + pmatch[3].rm_so, pmatch[3].rm_eo - pmatch[3].rm_so);
-            idStr[pmatch[3].rm_eo - pmatch[3].rm_so] = '\0';
-            mc = atoi(mcStr);
-            v = atoi(vStr);
-            id = atoi(idStr);
-
-            if (mc > 2 && mc <= 2 + nmc && v > 0 && v <= nv * 10 && id > 0 && id <= ninst) {
-                oldRuleNums[mc - 3][v / 10 - 1][id - 1] = atoi(oldRuleNumStr);
-                newRuleNums[mc - 3][v / 10 - 1][id - 1] = atoi(newRuleNumStr);
-            } else {
-                printf("Invalid instance file: %s, in line %d\n", instFile, lineNum);
-                exit(1);
-            }
+    char *pOld = oldRuleNumStr;
+    int cnt = 1;
+    while (*pOld != '\0') {
+        if (*pOld == '-') {
+            cnt++;
         }
+        pOld++;
+    }
+    pOld = oldRuleNumStr;
+    int oldRuleNums[cnt];
+    int newRuleNums[cnt];
+
+    cnt = 0;
+    oldRuleNumStr = strtok(oldRuleNumStr, "-");
+    while (oldRuleNumStr != NULL) {
+        oldRuleNums[cnt++] = atoi(oldRuleNumStr);
+        oldRuleNumStr = strtok(NULL, "-");
     }
 
-    int oldRuleNum, newRuleNum;
-    double sumPruningRate;
-    double rateList[nv];
-    for (mc = 3; mc <= 2 + nmc; mc++) {
-        for (v = 1; v <= nv; v++) {
-            // 计算平均剪枝率
-            sumPruningRate = 0;
-            for (int i = 1; i <= ninst; i++) {
-                oldRuleNum = oldRuleNums[mc - 3][v - 1][i - 1];
-                newRuleNum = newRuleNums[mc - 3][v - 1][i - 1];
-                sumPruningRate += (oldRuleNum - newRuleNum) * 100.0 / oldRuleNum;
-            }
-            rateList[v - 1] = sumPruningRate / ninst;
-        }
-
-        // 将dlist中的内容以百分比形式打印出来，保留两位小数，每打印一个数字换一行，不用逗号隔开
-        printf("MC%d-Q1-A90-R3000", mc);
-        for (int i = 0; i < nv; i++) {
-            printf(",%.2f%%", rateList[i]);
-        }
-        printf("\n");
+    cnt = 0;
+    newRuleNumStr = strtok(newRuleNumStr, "-");
+    while (newRuleNumStr != NULL) {
+        newRuleNums[cnt++] = atoi(newRuleNumStr);
+        newRuleNumStr = strtok(NULL, "-");
     }
+
+    double sumPruningRate = 0;
+    for (int i = 0; i < cnt; i++) {
+        sumPruningRate += (oldRuleNums[i] - newRuleNums[i]) * 100.0 / oldRuleNums[i];
+    }
+    return sumPruningRate / cnt;
 }
 
-void computeStatsAttrRule(char *statisticsFilePath) {
-    FILE *fp = fopen(statisticsFilePath, "r");
+void computeStatsAttrRule(char *resultFilePath) {
+    FILE *fp = fopen(resultFilePath, "r");
     if (fp == NULL) {
         printf("Statistics file not found!\n");
         return;
     }
 
     int na = 4, nr = 10, ninst = 50;
-    int oldRuleNums[na][nr][ninst];
-    int newRuleNums[na][nr][ninst];
+    double gpr[na][nr][ninst];
+    double lpr[na][nr][ninst];
 
     // 用正则表达式匹配实例文件名
     char *pattern = "MC5-Q1-V20-A([0-9]+)/P([0-9]+)/test([0-9]+).aabac";
@@ -233,7 +186,7 @@ void computeStatsAttrRule(char *statisticsFilePath) {
 
     int a, r, id;
     char aStr[10], rStr[10], idStr[10];
-    char *instFile, *oldRuleNumStr, *newRuleNumStr;
+    char *instFile, *nRulesBeforeGPStr, *nRulesAfterGPStr, *nRulesBeforeLPStr, *nRulesAfterLPStr;
 
     char line[1024];
     // 跳过表头
@@ -243,8 +196,6 @@ void computeStatsAttrRule(char *statisticsFilePath) {
     while (fgets(line, sizeof(line), fp) != NULL) {
         lineNum++;
         instFile = strtok(line, ",");
-        oldRuleNumStr = strtok(NULL, ",");
-        newRuleNumStr = strtok(NULL, ",");
 
         // 解析instFile
         if (regexec(&regex, instFile, 4, pmatch, 0) == 0) {
@@ -259,34 +210,237 @@ void computeStatsAttrRule(char *statisticsFilePath) {
             id = atoi(idStr);
 
             if (a > 30 && a <= 150 && r > 0 && r <= nr * 500 && id > 0 && id <= ninst) {
-                oldRuleNums[a / 30 - 2][r / 500 - 1][id - 1] = atoi(oldRuleNumStr);
-                newRuleNums[a / 30 - 2][r / 500 - 1][id - 1] = atoi(newRuleNumStr);
-            } else {
-                printf("Invalid instance file: %s, in line %d\n", instFile, lineNum);
-                exit(1);
+                nRulesBeforeGPStr = strtok(NULL, ",");
+                nRulesAfterGPStr = strtok(NULL, ",");
+                gpr[a / 30 - 2][r / 500 - 1][id - 1] = computeGPRFromString(nRulesBeforeGPStr, nRulesAfterGPStr);
+
+                strtok(NULL, ",");
+                nRulesBeforeLPStr = strtok(NULL, ",");
+                nRulesAfterLPStr = strtok(NULL, ",");
+                lpr[a / 30 - 2][r / 500 - 1][id - 1] = computeLPRFromString(nRulesBeforeLPStr, nRulesAfterLPStr);
+                continue;
             }
         }
+        printf("Error parsing line: %d\n in result file: %s\n", lineNum, resultFilePath);
+        exit(1);
     }
 
     int oldRuleNum, newRuleNum;
-    double sumPruningRate;
-    double rateList[nr];
-    for (a = 2; a <=  1 + na; a++) {
+    double sumGPR, sumLPR;
+    double gprList[nr], lprList[nr];
+    int cntLPR;
+    for (a = 2; a <= 1 + na; a++) {
         for (r = 1; r <= nr; r++) {
             // 计算平均剪枝率
-            sumPruningRate = 0;
+            sumGPR = 0;
+            sumLPR = 0;
+            cntLPR = 0;
             for (int i = 1; i <= ninst; i++) {
-                oldRuleNum = oldRuleNums[a - 2][r - 1][i - 1];
-                newRuleNum = newRuleNums[a - 2][r - 1][i - 1];
-                sumPruningRate += (oldRuleNum - newRuleNum) * 100.0 / oldRuleNum;
+                sumGPR += gpr[a - 2][r - 1][i - 1];
+                if (lpr[a - 2][r - 1][i - 1] != -1) {
+                    cntLPR++;
+                    sumLPR += lpr[a - 2][r - 1][i - 1];
+                }
             }
-            rateList[r - 1] = sumPruningRate / ninst;
+            gprList[r - 1] = sumGPR / ninst;
+            lprList[r - 1] = sumLPR / cntLPR;
         }
 
-        // 将dlist中的内容以百分比形式打印出来，保留两位小数，每打印一个数字换一行，不用逗号隔开
-        printf("MC5-Q1-V20-A%d", a * 30);
+        // 打印GPR和LPR
+        printf("[GPR] MC5-Q1-V20-A%d", a * 30);
         for (int i = 0; i < nr; i++) {
-            printf(",%.2f%%", rateList[i]);
+            printf(",%.2f%%", gprList[i]);
+        }
+        printf("\n");
+        printf("[LPR] MC5-Q1-V20-A%d", a * 30);
+        for (int i = 0; i < nr; i++) {
+            printf(",%.2f%%", lprList[i]);
+        }
+        printf("\n");
+    }
+}
+
+void computeStatsMaxCondVal(char *resultFilePath) {
+    FILE *fp = fopen(resultFilePath, "r");
+    if (fp == NULL) {
+        printf("Statistics file not found!\n");
+        return;
+    }
+
+    int nmc = 4, nv = 10, ninst = 50;
+    double gpr[nmc][nv][ninst];
+    double lpr[nmc][nv][ninst];
+
+    // 用正则表达式匹配实例文件名
+    char *pattern = "MC([0-9]+)-Q1-A90-R3000+/V([0-9]+)/test([0-9]+).aabac";
+    regex_t regex;
+    regcomp(&regex, pattern, REG_EXTENDED);
+    regmatch_t pmatch[4];
+
+    int mc, v, id;
+    char mcStr[10], vStr[10], idStr[10];
+    char *instFile, *nRulesBeforeGPStr, *nRulesAfterGPStr, *nRulesBeforeLPStr, *nRulesAfterLPStr;
+
+    char line[1024];
+    // 跳过表头
+    fgets(line, sizeof(line), fp);
+
+    int lineNum = 1;
+    while (fgets(line, sizeof(line), fp) != NULL) {
+        lineNum++;
+        instFile = strtok(line, ",");
+
+        // 解析instFile
+        if (regexec(&regex, instFile, 4, pmatch, 0) == 0) {
+            memcpy(mcStr, instFile + pmatch[1].rm_so, pmatch[1].rm_eo - pmatch[1].rm_so);
+            mcStr[pmatch[1].rm_eo - pmatch[1].rm_so] = '\0';
+            memcpy(vStr, instFile + pmatch[2].rm_so, pmatch[2].rm_eo - pmatch[2].rm_so);
+            vStr[pmatch[2].rm_eo - pmatch[2].rm_so] = '\0';
+            memcpy(idStr, instFile + pmatch[3].rm_so, pmatch[3].rm_eo - pmatch[3].rm_so);
+            idStr[pmatch[3].rm_eo - pmatch[3].rm_so] = '\0';
+            mc = atoi(mcStr);
+            v = atoi(vStr);
+            id = atoi(idStr);
+
+            if (mc > 2 && mc <= 2 + nmc && v > 0 && v <= nv * 10 && id > 0 && id <= ninst) {
+                nRulesBeforeGPStr = strtok(NULL, ",");
+                nRulesAfterGPStr = strtok(NULL, ",");
+                gpr[mc - 3][v / 10 - 1][id - 1] = computeGPRFromString(nRulesBeforeGPStr, nRulesAfterGPStr);
+
+                strtok(NULL, ",");
+                nRulesBeforeLPStr = strtok(NULL, ",");
+                nRulesAfterLPStr = strtok(NULL, ",");
+                lpr[mc - 3][v / 10 - 1][id - 1] = computeLPRFromString(nRulesBeforeLPStr, nRulesAfterLPStr);
+                continue;
+            }
+        }
+        printf("Error parsing line: %d\n in result file: %s\n", lineNum, resultFilePath);
+        exit(1);
+    }
+
+    int oldRuleNum, newRuleNum;
+    double sumGPR, sumLPR;
+    double gprList[nv], lprList[nv];
+    int cntLPR;
+    for (mc = 3; mc <= 2 + nmc; mc++) {
+        for (v = 1; v <= nv; v++) {
+            // 计算平均剪枝率
+            sumGPR = 0;
+            sumLPR = 0;
+            cntLPR = 0;
+            for (int i = 1; i <= ninst; i++) {
+                sumGPR += gpr[mc - 3][v - 1][i - 1];
+                if (lpr[mc - 3][v - 1][i - 1] != -1) {
+                    cntLPR++;
+                    sumLPR += lpr[mc - 3][v - 1][i - 1];
+                }
+            }
+            gprList[v - 1] = sumGPR / ninst;
+            lprList[v - 1] = sumLPR / cntLPR;
+        }
+
+        // 打印GPR和LPR
+        printf("[GPR] MC%d-Q1-A90-R3000", mc);
+        for (int i = 0; i < nv; i++) {
+            printf(",%.2f%%", gprList[i]);
+        }
+        printf("\n");
+        printf("[LPR] MC%d-Q1-A90-R3000", mc);
+        for (int i = 0; i < nv; i++) {
+            printf(",%.2f%%", lprList[i]);
+        }
+        printf("\n");
+    }
+}
+
+void computeStatsAttrQueryVal(char *resultFilePath) {
+    FILE *fp = fopen(resultFilePath, "r");
+    if (fp == NULL) {
+        printf("Statistics file not found!\n");
+        return;
+    }
+
+    int nq = 5, nv = 10, ninst = 50;
+    double gpr[nq][nv][ninst];
+    double lpr[nq][nv][ninst];
+
+    // 用正则表达式匹配实例文件名
+    char *pattern = "MC5-Q([0-9]+)-A60-R3000+/V([0-9]+)/test([0-9]+).aabac";
+    regex_t regex;
+    regcomp(&regex, pattern, REG_EXTENDED);
+    regmatch_t pmatch[4];
+
+    int q, v, id;
+    char qStr[10], vStr[10], idStr[10];
+    char *instFile, *nRulesBeforeGPStr, *nRulesAfterGPStr, *nRulesBeforeLPStr, *nRulesAfterLPStr;
+
+    char line[1024];
+    // 跳过表头
+    fgets(line, sizeof(line), fp);
+
+    int lineNum = 1;
+    while (fgets(line, sizeof(line), fp) != NULL) {
+        lineNum++;
+        instFile = strtok(line, ",");
+
+        // 解析instFile
+        if (regexec(&regex, instFile, 4, pmatch, 0) == 0) {
+            memcpy(qStr, instFile + pmatch[1].rm_so, pmatch[1].rm_eo - pmatch[1].rm_so);
+            qStr[pmatch[1].rm_eo - pmatch[1].rm_so] = '\0';
+            memcpy(vStr, instFile + pmatch[2].rm_so, pmatch[2].rm_eo - pmatch[2].rm_so);
+            vStr[pmatch[2].rm_eo - pmatch[2].rm_so] = '\0';
+            memcpy(idStr, instFile + pmatch[3].rm_so, pmatch[3].rm_eo - pmatch[3].rm_so);
+            idStr[pmatch[3].rm_eo - pmatch[3].rm_so] = '\0';
+            q = atoi(qStr);
+            v = atoi(vStr);
+            id = atoi(idStr);
+
+            if (q > 0 && q <= nq && v > 0 && v <= nv * 10 && id > 0 && id <= ninst) {
+                nRulesBeforeGPStr = strtok(NULL, ",");
+                nRulesAfterGPStr = strtok(NULL, ",");
+                gpr[q - 1][v / 10 - 1][id - 1] = computeGPRFromString(nRulesBeforeGPStr, nRulesAfterGPStr);
+
+                strtok(NULL, ",");
+                nRulesBeforeLPStr = strtok(NULL, ",");
+                nRulesAfterLPStr = strtok(NULL, ",");
+                lpr[q - 1][v / 10 - 1][id - 1] = computeLPRFromString(nRulesBeforeLPStr, nRulesAfterLPStr);
+                continue;
+            }
+        }
+        printf("Error parsing line: %d\n in result file: %s\n", lineNum, resultFilePath);
+        exit(1);
+    }
+
+    int oldRuleNum, newRuleNum;
+    double sumGPR, sumLPR;
+    double gprList[nv], lprList[nv];
+    int cntLPR;
+    for (q = 1; q <= nq; q++) {
+        for (v = 1; v <= nv; v++) {
+            // 计算平均剪枝率
+            sumGPR = 0;
+            sumLPR = 0;
+            cntLPR = 0;
+            for (int i = 1; i <= ninst; i++) {
+                sumGPR += gpr[q - 1][v - 1][i - 1];
+                if (lpr[q - 1][v - 1][i - 1] != -1) {
+                    cntLPR++;
+                    sumLPR += lpr[q - 1][v - 1][i - 1];
+                }
+            }
+            gprList[v - 1] = sumGPR / ninst;
+            lprList[v - 1] = sumLPR / cntLPR;
+        }
+
+        // 打印GPR和LPR
+        printf("[GPR] MC5-Q%d-A60-R3000", q);
+        for (int i = 0; i < nv; i++) {
+            printf(",%.2f%%", gprList[i]);
+        }
+        printf("\n");
+        printf("[LPR] MC5-Q%d-A60-R3000", q);
+        for (int i = 0; i < nv; i++) {
+            printf(",%.2f%%", lprList[i]);
         }
         printf("\n");
     }
@@ -295,47 +449,41 @@ void computeStatsAttrRule(char *statisticsFilePath) {
 int main(int argc, char *argv[]) {
     char *helpMessage = "Usage: %s <option> <argument>\n"
                         "Options:\n"
-                        "  -m, --mode <gpr|stat-gpr-a-r|stat-gpr-mc-v|stat-gpr-aq-v>    Set the mode of the program\n"
-                        "  -i, --input <arg>                                            Compute the global pruning rate of given instance\n"
-                        "  -o, --output <arg>                                           Save the global pruning rate to given output file\n"
-                        "  -s, --stat-file <arg>                                        Compute statistics of given output file\n";
+                        "  -s, --stat <a-r|mc-v|aq-v>   Compute statistics of given result file\n"
+                        "  -i, --instance-file <arg>    The file of ACoAC-safety instance\n"
+                        "  -r, --result-file <arg>      The file to save the experiment result\n";
 
     static struct option long_options[] = {
-        {"mode", required_argument, 0, 'm'},
-        {"input", required_argument, 0, 'i'},
-        {"output", required_argument, 0, 'o'},
-        {"stat-file", required_argument, 0, 's'},
+        {"stat", required_argument, 0, 's'},
+        {"instance-file", required_argument, 0, 'i'},
+        {"result-file", required_argument, 0, 'r'},
         {0, 0, 0, 0}};
 
-    char *mode = NULL;
-    char *statFilePath = NULL;
+    // char *mode = NULL;
+    char *statType = NULL;
     char *instFilePath = NULL;
-    char *outputFilePath = NULL;
+    char *resultFilePath = NULL;
     int unrecognized = 0;
 
     int c;
     while (1) {
         int option_index = 0;
 
-        c = getopt_long_only(argc, argv, "g:s:o:", long_options, &option_index);
+        c = getopt_long_only(argc, argv, "s:i:r:", long_options, &option_index);
         if (c == -1)
             break;
         switch (c) {
-        case 'm':
-            mode = (char *)malloc(strlen(optarg) + 1);
-            strcpy(mode, optarg);
+        case 's':
+            statType = (char *)malloc(strlen(optarg) + 1);
+            strcpy(statType, optarg);
             break;
         case 'i':
             instFilePath = (char *)malloc(strlen(optarg) + 1);
             strcpy(instFilePath, optarg);
             break;
-        case 'o':
-            outputFilePath = (char *)malloc(strlen(optarg) + 1);
-            strcpy(outputFilePath, optarg);
-            break;
-        case 's':
-            statFilePath = (char *)malloc(strlen(optarg) + 1);
-            strcpy(statFilePath, optarg);
+        case 'r':
+            resultFilePath = (char *)malloc(strlen(optarg) + 1);
+            strcpy(resultFilePath, optarg);
             break;
         default:
             unrecognized = 1;
@@ -348,49 +496,46 @@ int main(int argc, char *argv[]) {
         printf("%s\n", helpMessage);
         return 1;
     }
-    if (mode == NULL) {
-        printf("Mode is not specified!\n");
-        printf("%s\n", helpMessage);
-        return 1;
-    }
-    if (strcmp(mode, "gpr") == 0) {
+
+    if (statType == NULL) {
         if (instFilePath == NULL) {
             printf("Instance file is not specified!\n");
             printf("%s\n", helpMessage);
             return 1;
         }
-        computeGPR(instFilePath, outputFilePath);
-        return 0;
-    }
-    if (strcmp(mode, "stat-gpr-aq-v") == 0) {
-        if (statFilePath == NULL) {
-            printf("Statistics file is not specified!\n");
-            printf("%s\n", helpMessage);
-            return 1;
-        }
-        computeStatsAttrQueryVal(statFilePath);
-        return 0;
-    }
-    if (strcmp(mode, "stat-gpr-mc-v") == 0) {
-        if (statFilePath == NULL) {
-            printf("Statistics file is not specified!\n");
-            printf("%s\n", helpMessage);
-            return 1;
-        }
-        computeStatsMaxCondVal(statFilePath);
-        return 0;
-    }
-    if (strcmp(mode, "stat-gpr-a-r") == 0) {
-        if (statFilePath == NULL) {
-            printf("Statistics file is not specified!\n");
-            printf("%s\n", helpMessage);
-            return 1;
-        }
-        computeStatsAttrRule(statFilePath);
+        computePR(instFilePath, resultFilePath);
         return 0;
     }
 
-    printf("unrecogized mode: %s", mode);
+    if (strcmp(statType, "a-r") == 0) {
+        if (resultFilePath == NULL) {
+            printf("Result file is not specified!\n");
+            printf("%s\n", helpMessage);
+            return 1;
+        }
+        computeStatsAttrRule(resultFilePath);
+        return 0;
+    }
+    if (strcmp(statType, "mc-v") == 0) {
+        if (resultFilePath == NULL) {
+            printf("Result file is not specified!\n");
+            printf("%s\n", helpMessage);
+            return 1;
+        }
+        computeStatsMaxCondVal(resultFilePath);
+        return 0;
+    }
+    if (strcmp(statType, "aq-v") == 0) {
+        if (resultFilePath == NULL) {
+            printf("Result file is not specified!\n");
+            printf("%s\n", helpMessage);
+            return 1;
+        }
+        computeStatsAttrQueryVal(resultFilePath);
+        return 0;
+    }
+
+    printf("unrecogized statistics type: %s\n", statType);
     printf("%s\n", helpMessage);
     return 1;
 }

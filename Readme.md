@@ -27,10 +27,10 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
 
 ## Usage
 
-1. **To analyze an ACoAC policy file and set the timeout threshold (in seconds):**
+1. **To analyze an ACoAC policy file:**
 
    ```bash
-   ./coachecker -model_checker <nuXmv_path> -input <policy_file> -timeout <timeout_threshold>
+   ./coachecker -model_checker <nuXmv_path> -input <policy_file> -timeout <timeout_threshold_in_seconds>
    ```
 
    Example:
@@ -56,7 +56,8 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
 
       ```bash
       cd coachecker_c/bin
-      nohup ./exp_scale.sh > exp_scale.log 2>&1 &
+      mkdir -p ../logs
+      nohup ./exp_pr.sh > ../logs/exp_pr.log 2>&1 &
       ```
       
 

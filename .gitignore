@@ -4,5 +4,7 @@
 /logs
 /bin/coachecker
 /bin/exp1
+/bin/log_analyzer
 /bin/nuXmv
 /build
+/lib

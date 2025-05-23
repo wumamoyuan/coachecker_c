@@ -4,7 +4,7 @@
 static BigInteger compute1(AABACInstance *pInst) {
     BigInteger bound = iBigInteger.createFromInt(1);
     BigInteger tmp;
-    HashNodeIterator *it = iHashMap.NewIterator(pInst->pmapAttr2Dom);
+    HashNodeIterator *it = iHashMap.NewIterator(pInst->pMapAttr2Dom);
     char *attr;
     int domSize;
     while (it->HasNext(it)) {
@@ -35,7 +35,7 @@ static BigInteger compute2(AABACInstance *pInst) {
     int domSize;
     char *attr;
     HashNode *pNode;
-    HashNodeIterator *it = iHashMap.NewIterator(pInst->pmapAttr2Dom);
+    HashNodeIterator *it = iHashMap.NewIterator(pInst->pMapAttr2Dom);
     while (it->HasNext(it)) {
         pNode = it->GetNext(it);
         attr = istrCollection.GetElement(pscAttrs, *(int *)pNode->key);
@@ -54,7 +54,7 @@ static BigInteger compute2(AABACInstance *pInst) {
         }
     }
     iHashMap.DeleteIterator(it);
-    
+
     tmp = iBigInteger.subtractByInt(boundPart2, 1);
     BigInteger bound = iBigInteger.multiply(boundPart1, tmp);
     iBigInteger.finalize(boundPart1);
@@ -99,14 +99,14 @@ void insertDesc(int *array, int len, int n) {
  */
 static BigInteger compute3(AABACInstance *pInst) {
     HashMap *pMapInitAVs = iHashBasedTable.GetRow(pInst->pTableInitState, &pInst->queryUserIdx);
-    int attrNum = iHashMap.Size(pInst->pmapAttr2Dom);
+    int attrNum = iHashMap.Size(pInst->pMapAttr2Dom);
     int attrs1[attrNum], attrs4[attrNum], attrs1MinusQueryAttrs[attrNum], attrs4MinusQueryAttrs[attrNum];
     int attrs1Len = 0, attrs4Len = 0, attrs1MinusQueryAttrsLen = 0, attrs4MinusQueryAttrsLen = 0;
 
     int *pAttrIdx, *pInitValIdx, *pQueryValIdx, domSize;
     char *attr;
     HashNode *node;
-    HashNodeIterator *it = iHashMap.NewIterator(pInst->pmapAttr2Dom);
+    HashNodeIterator *it = iHashMap.NewIterator(pInst->pMapAttr2Dom);
     while (it->HasNext(it)) {
         node = it->GetNext(it);
         pAttrIdx = (int *)node->key;

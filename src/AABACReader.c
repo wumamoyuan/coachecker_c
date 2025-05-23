@@ -2,28 +2,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include "AABACIO.h"
 #include "AABACUtils.h"
 
-#ifdef CONSOLE_DEBUG
-void log_print(const char *func, int line, const char *format, ...) {
-    va_list arg;
-    va_start(arg, format);
-    time_t time_log = time(NULL);
-    struct tm *tm_log = localtime(&time_log);
-    /*printf("%04d-%02d-%02d %02d:%02d:%02d DEBUG [%s](%d):  ", tm_log->tm_year
-       + 1900, tm_log->tm_mon + 1, tm_log->tm_mday, tm_log->tm_hour,
-       tm_log->tm_min, tm_log->tm_sec, func, line);*/
-    printf("\033[47;31m%04d-%02d-%02d %02d:%02d:%02d DEBUG [%s](%d):  \033[0m",
-           tm_log->tm_year + 1900, tm_log->tm_mon + 1, tm_log->tm_mday,
-           tm_log->tm_hour, tm_log->tm_min, tm_log->tm_sec, func, line);
-    vprintf(format, arg);
-}
-#else
-#define log_print(...)
-#endif
+#define USERS "Users"
+#define ATTRIBUTES "Attributes"
+#define DEFAULT_VALUE "Default Value"
+#define UAV "UAV"
+#define RULES "Rules"
+#define SPEC "Spec"
 
 /****************************************************************************************************
  * 功能：处理用户列表，添加用户到实例中。
@@ -56,7 +44,7 @@ static int handleUsers(AABACInstance *pInst, char *line) {
             // Add user to the instance
             if (iDictionary.Insert(pdictUser2Index, user, &userNum)) {
                 istrCollection.Add(pscUsers, user);
-                iVector.Add(pInst->pVecUserIdxes, &userNum);
+                iVector.Add(pInst->pVecUserIndices, &userNum);
                 userNum++;
                 logAABAC(__func__, __LINE__, 0, DEBUG, "Add %d user: %s\n", userNum, user);
             }
@@ -121,10 +109,10 @@ static int handleAttributes(char *line) {
                 attrNum = istrCollection.Size(pscAttrs);
                 iDictionary.Insert(pdictAttr2Index, line + start, &attrNum);
                 istrCollection.Add(pscAttrs, line + start);
-                //iVector.Add(pInst->pVecAttrIdxes, &attrNum);
+                // iVector.Add(pInst->pVecAttrIdxes, &attrNum);
                 iHashMap.Put(pmapAttr2Type, &attrNum, &attrType);
                 iHashMap.Put(pmapAttr2DefVal, &attrNum, &defValIdx);
-                //logAABAC(__func__, __LINE__, 0, DEBUG, "Add attribute: %s, index: %d\n", line + start, attrNum);
+                // logAABAC(__func__, __LINE__, 0, DEBUG, "Add attribute: %s, index: %d\n", line + start, attrNum);
                 attrNum++;
             }
             start = cur + 1;
@@ -385,7 +373,7 @@ static int handleRule(AABACInstance *pInst, char *line) {
     }
     HashSet *adminCond = handleCondition(adminCondStr);
     HashSet *userCond = handleCondition(userCondStr);
-    Rule *r = iRule.Create(adminCond, userCond, attrIdx, valueIdx);    
+    Rule *r = iRule.Create(adminCond, userCond, attrIdx, valueIdx);
     iVector.Add(pVecRules, r);
     free(r);
     int ruleIdx = iVector.Size(pVecRules) - 1;
@@ -496,23 +484,19 @@ static int handleLine(AABACInstance *pInst, int stage, char *line) {
 }
 
 AABACInstance *readAABACInstance(char *aabacFilePath) {
-    logAABAC(__func__, __LINE__, 0, INFO,
-             "[start] reading AABAC instance from file %s\n", aabacFilePath);
-    // start timing
-    clock_t start = clock();
+    logAABAC(__func__, __LINE__, 0, INFO, "[start] reading AABAC instance from file %s\n", aabacFilePath);
 
     FILE *file = fopen(aabacFilePath, "r");
     if (file == NULL) {
         printf("Error opening file: %s\n", aabacFilePath);
         return NULL;
     }
-    
+
     // 初始化全局变量
     initGlobalVars();
     AABACInstance *pInst = createAABACInstance();
 
-    // 0: initial, 1: users, 2: attributes, 3: default value, 4: UAV, 5: rules,
-    // 6: spec
+    // 0: initial, 1: users, 2: attributes, 3: default value, 4: UAV, 5: rules, 6: spec
     int stage = 0;
     int line_count = 0;
 
@@ -533,7 +517,6 @@ AABACInstance *readAABACInstance(char *aabacFilePath) {
         }
 
         line_count++;
-        log_print(__func__, __LINE__, "Line %d: %s", line_count, line);
 
         // 检查是否需要扩展缓冲区
         size_t line_len = strlen(line);
@@ -607,11 +590,6 @@ AABACInstance *readAABACInstance(char *aabacFilePath) {
     free(line);
     fclose(file);
 
-    // end timing
-    clock_t end = clock();
-    double time_spent = (double)(end - start) / CLOCKS_PER_SEC *
-                        1000; // Convert to milliseconds
-    logAABAC(__func__, __LINE__, 0, INFO, "[end] reading AABAC instance from file %s, cost => %.2fms\n", aabacFilePath, time_spent);
-    log_print(__func__, __LINE__, "read %d lines\n", line_count);
+    logAABAC(__func__, __LINE__, 0, INFO, "[end] reading AABAC instance from file %s\n", aabacFilePath);
     return pInst;
 }

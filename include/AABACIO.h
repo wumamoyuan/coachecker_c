@@ -3,30 +3,29 @@
 
 #include "AABACInstance.h"
 
-#define USERS "Users"
-#define ATTRIBUTES "Attributes"
-#define DEFAULT_VALUE "Default Value"
-#define UAV "UAV"
-#define RULES "Rules"
-#define SPEC "Spec"
-
-/****************************************************************************************************
- * 功能：从指定文件中读取AABAC实例
- * 参数：
- *      @filename[in]: 待读取的文件名
- * 返回值：
- *      AABAC实例
- ***************************************************************************************************/
+/**
+ * Read an AABAC instance from a file
+ * 
+ * @param filename[in]: The path of the file to read
+ * @return The AABAC instance
+ */
 AABACInstance *readAABACInstance(char *filename);
 
-/****************************************************************************************************
- * 功能：将AABAC实例写入指定文件中
- * 参数：
- *      @pInst[in]： AABAC实例
- *      @filename[in]: 待写入的文件名
- * 返回值：
- *      0：成功，-1：失败
- ***************************************************************************************************/
+/**
+ * Read an ARBAC instance from a file and convert it to an AABAC instance
+ * 
+ * @param filename[in]: The path of the file to read
+ * @return The AABAC instance
+ */
+AABACInstance *readARBACInstance(char *filename);
+
+/**
+ * Write an AABAC instance to a file
+ * 
+ * @param pInst[in]: The AABAC instance to write
+ * @param filename[in]: The path of the file to write
+ * @return 0 if write successfully, error code if failed
+ */
 int writeAABACInstance(AABACInstance *pInst, char *filename);
 
 #endif

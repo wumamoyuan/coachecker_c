@@ -238,20 +238,22 @@ static void cloneRules(AbsRef *pAbsRef) {
         iVector.Add(pVecNewRules, pRule);
         pNewRule = iVector.GetElement(pVecNewRules, i);
 
-        pNewRule->pmapUserCondValue = iHashMap.Create(sizeof(int), sizeof(HashSet *), IntHashCode, IntEqual);
-        HashNodeIterator *itMap = iHashMap.NewIterator(pRule->pmapUserCondValue);
-        while (itMap->HasNext(itMap)) {
-            node = itMap->GetNext(itMap);
+        if (pRule->pmapUserCondValue != NULL) {
+            pNewRule->pmapUserCondValue = iHashMap.Create(sizeof(int), sizeof(HashSet *), IntHashCode, IntEqual);
+            HashNodeIterator *itMap = iHashMap.NewIterator(pRule->pmapUserCondValue);
+            while (itMap->HasNext(itMap)) {
+                node = itMap->GetNext(itMap);
 
-            pSet = iHashSet.Create(sizeof(int), IntHashCode, IntEqual);
-            itSet = iHashSet.NewIterator(*(HashSet **)node->value);
-            while (itSet->HasNext(itSet)) {
-                iHashSet.Add(pSet, itSet->GetNext(itSet));
+                pSet = iHashSet.Create(sizeof(int), IntHashCode, IntEqual);
+                itSet = iHashSet.NewIterator(*(HashSet **)node->value);
+                while (itSet->HasNext(itSet)) {
+                    iHashSet.Add(pSet, itSet->GetNext(itSet));
+                }
+                iHashSet.DeleteIterator(itSet);
+                iHashMap.Put(pNewRule->pmapUserCondValue, node->key, &pSet);
             }
-            iHashSet.DeleteIterator(itSet);
-            iHashMap.Put(pNewRule->pmapUserCondValue, node->key, &pSet);
+            iHashMap.DeleteIterator(itMap);
         }
-        iHashMap.DeleteIterator(itMap);
     }
     pVecRules = pVecNewRules;
 }
@@ -284,7 +286,7 @@ static AABACInstance *getInstance(AbsRef *pAbsRef) {
     iHashSet.DeleteIterator(itSet);
 
     int queryUserIdx = pAbsRef->pOriInst->queryUserIdx;
-    pNewInstance->pVecUserIdxes = pAbsRef->pOriInst->pVecUserIdxes;
+    pNewInstance->pVecUserIndices = pAbsRef->pOriInst->pVecUserIndices;
 
     HashNodeIterator *itMap = iHashMap.NewIterator(*(HashMap **)iHashMap.Get(pAbsRef->pOriInst->pTableInitState->pRowMap, &queryUserIdx));
     HashNode *node;

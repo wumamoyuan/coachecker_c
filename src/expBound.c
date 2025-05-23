@@ -1,6 +1,6 @@
 #include "AABACBoundCalculator.h"
-#include "AABACInstance.h"
-#include "bn_java.h"
+#include "AABACIO.h"
+#include "BigInteger.h"
 
 #include <unistd.h>
 

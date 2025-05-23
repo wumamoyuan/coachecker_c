@@ -2,7 +2,7 @@
 #define AABAC_BOUND_CALCULATOR_H
 
 #include "AABACInstance.h"
-#include "bn_java.h"
+#include "BigInteger.h"
 
 BigInteger computeBound(AABACInstance *pInst, int boundLevel);
 

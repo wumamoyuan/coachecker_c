@@ -17,7 +17,7 @@ static void computeAttrDom(AABACInstance *pInst) {
         while (itMap->HasNext(itMap)) {
             node = itMap->GetNext(itMap);
             pAttrIdx = (int *)node->key;
-            ppSetValIdxes = iHashMap.Get(pInst->pmapAttr2Dom, pAttrIdx);
+            ppSetValIdxes = iHashMap.Get(pInst->pMapAttr2Dom, pAttrIdx);
             assert(ppSetValIdxes != NULL);
             itSet2 = iHashSet.NewIterator(*(HashSet **)node->value);
             while (itSet2->HasNext(itSet2)) {
@@ -33,7 +33,7 @@ static void computeAttrDom(AABACInstance *pInst) {
     while (itMap->HasNext(itMap)) {
         node = itMap->GetNext(itMap);
         pAttrIdx = (int *)node->key;
-        ppSetValIdxes = iHashMap.Get(pInst->pmapAttr2Dom, pAttrIdx);
+        ppSetValIdxes = iHashMap.Get(pInst->pMapAttr2Dom, pAttrIdx);
         assert(ppSetValIdxes != NULL);
         // if (ppSetValIdxes == NULL) {
         //     pSetValIdxes = iHashSet.Create(sizeof(int), IntHashCode, IntEqual);
@@ -56,7 +56,7 @@ void translateVars(AABACInstance *pInst, FILE *fp) {
     // 定义变量
     HashSet *pSetVals = iHashSet.Create(sizeof(char *), StringHashCode, StringEqual);
 
-    HashNodeIterator *itMap = iHashMap.NewIterator(pInst->pmapAttr2Dom);
+    HashNodeIterator *itMap = iHashMap.NewIterator(pInst->pMapAttr2Dom);
     int *pAttrIdx;
     char *attr, *val;
     AttrType attrType;
@@ -84,7 +84,7 @@ void translateVars(AABACInstance *pInst, FILE *fp) {
     iHashMap.DeleteIterator(itMap);
 
     fprintf(fp, "attr : {");
-    itMap = iHashMap.NewIterator(pInst->pmapAttr2Dom);
+    itMap = iHashMap.NewIterator(pInst->pMapAttr2Dom);
     first = 1;
     while (itMap->HasNext(itMap)) {
         node = itMap->GetNext(itMap);
@@ -118,7 +118,7 @@ void translateInitState(AABACInstance *pInst, FILE *fp) {
     int *pAttrIdx, valIdx;
     AttrType attrType;
     HashNode *node;
-    HashNodeIterator *itMap = iHashMap.NewIterator(pInst->pmapAttr2Dom);
+    HashNodeIterator *itMap = iHashMap.NewIterator(pInst->pMapAttr2Dom);
     while (itMap->HasNext(itMap)) {
         node = itMap->GetNext(itMap);
         if (iHashSet.Size(*(HashSet **)node->value) <= 1) {
@@ -146,7 +146,7 @@ static void translateCanSetRules(AABACInstance *pInst, FILE *fp) {
     AtomCondition *pAtomCond;
     HashMap *pMapValToRules, *pMapAdminCondValue;
     HashNode *node;
-    HashNodeIterator *itMapAttr2Dom = iHashMap.NewIterator(pInst->pmapAttr2Dom), *itMapValToRules, *itMapCondValue;
+    HashNodeIterator *itMapAttr2Dom = iHashMap.NewIterator(pInst->pMapAttr2Dom), *itMapValToRules, *itMapCondValue;
     while (itMapAttr2Dom->HasNext(itMapAttr2Dom)) {
         node = itMapAttr2Dom->GetNext(itMapAttr2Dom);
         pTargetAttrIdx = (int *)node->key;
@@ -187,7 +187,7 @@ static void translateCanSetRules(AABACInstance *pInst, FILE *fp) {
                     condAttrIdx = pAtomCond->attribute;
 
                     // 在condAttr的值域中寻找所有满足条件adminAtomCond的值effectiveValues
-                    pSetAttrDom = iHashMap.Get(pInst->pmapAttr2Dom, &condAttrIdx);
+                    pSetAttrDom = iHashMap.Get(pInst->pMapAttr2Dom, &condAttrIdx);
                     pSetEffectiveValues = iHashSet.Create(sizeof(int), IntHashCode, IntEqual);
                     iAtomCondition.FindEffectiveValues(pAtomCond, pSetAttrDom, pSetEffectiveValues);
 

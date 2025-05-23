@@ -39,19 +39,19 @@
 #define RESULT_SUFFIX ".txt"
 #define RESULT_SUFFIX_LEN 4
 
-static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrechecking,
+static AABACResult verify(char *modelCheckerPath, char *instFilePath, char *logDir, int doPrechecking,
                           int doSlicing, int enableAbstractRefine, int useBMC, int bl, int showRules, long timeout) {
     AABACInstance *pInst = NULL;
+
+    // read the instance file
     int instFilePathLen = strlen(instFilePath);
     if (instFilePathLen >= AABAC_SUFFIX_LEN && strcmp(instFilePath + instFilePathLen - AABAC_SUFFIX_LEN, AABAC_SUFFIX) == 0) {
         logAABAC(__func__, __LINE__, 0, INFO, "[start] parsing aabac instance file\n");
         pInst = readAABACInstance(instFilePath);
     } else if ((instFilePathLen >= ARBAC_SUFFIX_LEN && strcmp(instFilePath + instFilePathLen - ARBAC_SUFFIX_LEN, ARBAC_SUFFIX) == 0) ||
                (instFilePathLen >= MOHAWK_SUFFIX_LEN && strcmp(instFilePath + instFilePathLen - MOHAWK_SUFFIX_LEN, MOHAWK_SUFFIX) == 0)) {
-        logAABAC(__func__, __LINE__, 0, ERROR, "unsupported file type: %s, %s\n", ARBAC_SUFFIX, MOHAWK_SUFFIX);
-        return (AABACResult){.code = AABAC_RESULT_ERROR};
-        // logAABAC(__func__, __LINE__, 0, INFO, "[start] translating arbac instance file\n");
-        // readARBACInstance(instFilePath);
+        logAABAC(__func__, __LINE__, 0, INFO, "[start] translating arbac instance file\n");
+        pInst = readARBACInstance(instFilePath);
     } else {
         logAABAC(__func__, __LINE__, 0, ERROR, "illegal file type\n");
         return (AABACResult){.code = AABAC_RESULT_ERROR};
@@ -59,10 +59,11 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
     if (pInst == NULL) {
         return (AABACResult){.code = AABAC_RESULT_ERROR};
     }
+
+    // initialize the instance
     init(pInst);
 
-    char *logDir = "/root/nn/coachecker_c/logs/";
-
+    // pre-checking
     if (doPrechecking) {
         logAABAC(__func__, __LINE__, 0, INFO, "[start] pre-checking\n");
         clock_t startPreCheck = clock();
@@ -77,11 +78,13 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
         }
         logAABAC(__func__, __LINE__, 0, INFO, "preCheck failed\n");
     }
+    
     pInst = userCleaning(pInst);
     char *writePath;
 
     AABACResult result = {.code = AABAC_RESULT_UNKNOWN};
     if (doSlicing) {
+        // Global pruning
         pInst = slice(pInst, &result);
         if (result.code != AABAC_RESULT_UNKNOWN) {
             printResult(result, showRules);
@@ -100,33 +103,44 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
     char boundStr[15];
     char *nusmvFilePath, *resultFilePath, *nusmvOutput;
 
-    // 开始abstraction refinement
     if (enableAbstractRefine) {
+        // Generate an abstract sub-policy
         pAbsRef = createAbsRef(pInst);
         next = abstract(pAbsRef);
     } else {
+        // no abstraction refinement
         next = pInst;
     }
+
+    // Start the loop of abstraction refinement
     while (next != NULL) {
-        sprintf(roundStr, "%d", pAbsRef->round);
+        sprintf(roundStr, "%d", enableAbstractRefine ? pAbsRef->round : 0);
+
         if (enableAbstractRefine) {
+            // Save the abstract sub-policy in the log directory
             writePath = (char *)malloc(strlen(logDir) + ABSTRACTION_REFINEMENT_RESULT_FILE_NAME_LEN + strlen(roundStr) + AABAC_SUFFIX_LEN + 1);
             sprintf(writePath, "%s%s%s%s", logDir, ABSTRACTION_REFINEMENT_RESULT_FILE_NAME, roundStr, AABAC_SUFFIX);
             writeAABACInstance(next, writePath);
             free(writePath);
 
             if (doSlicing) {
+                // Local pruning
                 next = slice(next, &result);
                 if (result.code == AABAC_RESULT_REACHABLE || (result.code == AABAC_RESULT_UNREACHABLE && !enableAbstractRefine)) {
+                    // Abstraction refinement is disabled and the safety of the sub-policy is determined, output the result
+                    // Abstraction refinement is enabled and the sub-policy is determined to be "unsafe", also output the result
                     printResult(result, showRules);
                     logAABAC(__func__, __LINE__, 0, INFO, "round => %s\n", roundStr);
                     return result;
                 }
                 if (result.code == AABAC_RESULT_UNREACHABLE) {
+                    // Abstraction refinement is enabled and the sub-policy is determined to be "safe", need refinement and re-verification
                     printResult(result, showRules);
                     next = refine(pAbsRef);
                     continue;
                 }
+
+                // Save the pruned sub-policy in the log directory
                 writePath = (char *)malloc(strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN + strlen(roundStr) + AABAC_SUFFIX_LEN + 1);
                 sprintf(writePath, "%s%s%s%s", logDir, SLICING_RESULT_FILE_NAME, roundStr, AABAC_SUFFIX);
                 writeAABACInstance(next, writePath);
@@ -134,7 +148,21 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
             }
         }
 
-        // 将instance转化为NuSMV文件
+        int tooLarge = 0;
+        if (useBMC) {
+            // Bound estimation, if the bound exceeds the range of int, use INT_MAX as the bound
+            BigInteger bound = computeBound(next, bl);
+            if (bound.magLen > 1 || (bound.magLen == 1 && (bound.mag[0] >> 31) != 0)) {
+                logAABAC(__func__, __LINE__, 0, WARNING, "bound is too large, use INT_MAX as bound\n");
+                sprintf(boundStr, "%d", INT_MAX);
+                tooLarge = 1;
+            } else {
+                sprintf(boundStr, "%d", bound.mag[0]);
+            }
+            iBigInteger.finalize(bound);
+        }
+
+        // Translate the instance to a NuSMV file
         nusmvFilePath = (char *)malloc(strlen(logDir) + NUSMV_FILE_NAME_LEN + strlen(roundStr) + SMV_SUFFIX_LEN + 1);
         sprintf(nusmvFilePath, "%s%s%s%s", logDir, NUSMV_FILE_NAME, roundStr, SMV_SUFFIX);
         if (translate(next, nusmvFilePath, doSlicing) != 0) {
@@ -144,36 +172,18 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
             return result;
         }
 
-        // 调用model checker进行验证
+        // Call the model checker to verify the instance and save the result in the log directory
         resultFilePath = (char *)malloc(strlen(logDir) + RESULT_FILE_NAME_LEN + strlen(roundStr) + RESULT_SUFFIX_LEN + 1);
         sprintf(resultFilePath, "%s%s%s%s", logDir, RESULT_FILE_NAME, roundStr, RESULT_SUFFIX);
+        nusmvOutput = runModelChecker(modelCheckerPath, nusmvFilePath, resultFilePath, timeout, useBMC ? boundStr : NULL);
 
-        int tooLarge = 0;
-        if (!useBMC) {
-            // 使用SMV进行验证
-            nusmvOutput = runOnSMCMode(modelCheckerPath, nusmvFilePath, resultFilePath, timeout);
-            result = analyzeModelCheckerOutput(nusmvOutput, next, NULL, showRules);
-        } else {
-            // 计算bound，然后使用BMC进行验证
-            // 如果bound超过了int的范围，则使用INT_MAX作为bound
-            BigInteger bound = computeBound(next, bl);
-            printf("bound: %s\n", iBigInteger.toHexString(bound));
-            if (bound.magLen > 1 || (bound.magLen == 1 && (bound.mag[0] >> 31) != 0)) {
-                logAABAC(__func__, __LINE__, 0, WARNING, "bound is too large, use INT_MAX as bound\n");
-                sprintf(boundStr, "%d", INT_MAX);
-                tooLarge = 1;
-            } else {
-                sprintf(boundStr, "%d", bound.mag[0]);
-            }
-            iBigInteger.finalize(bound);
-            nusmvOutput = runOnBMCMode(modelCheckerPath, nusmvFilePath, resultFilePath, timeout, boundStr);
-            result = analyzeModelCheckerOutput(nusmvOutput, next, boundStr, showRules);
-        }
+        // Analyze the result of the model checker
+        result = analyzeModelCheckerOutput(nusmvOutput, next, useBMC ? boundStr : NULL, showRules);
         free(nusmvOutput);
 
         if (tooLarge && result.code == AABAC_RESULT_UNREACHABLE) {
-            // todo: 如果界超过了int的范围，且模型检测结果为不可达，则应当以SMC模式重新检测
-            nusmvOutput = runOnSMCMode(modelCheckerPath, nusmvFilePath, resultFilePath, timeout);
+            // The bound exceeds the range of int and the model checker result is "unreachable", need re-verification in SMC mode
+            nusmvOutput = runModelChecker(modelCheckerPath, nusmvFilePath, resultFilePath, timeout, NULL);
             result = analyzeModelCheckerOutput(nusmvOutput, next, NULL, showRules);
             free(nusmvOutput);
         }
@@ -182,48 +192,19 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, int doPrec
 
         logAABAC(__func__, __LINE__, 0, INFO, "\n");
         printResult(result, showRules);
-        
+
+        // If abstraction refinement is disabled or the sub-policy is not determined to be "unsafe", output the result
         if (!enableAbstractRefine || result.code != AABAC_RESULT_UNREACHABLE) {
             logAABAC(__func__, __LINE__, 0, INFO, "round => %s\n", roundStr);
             return result;
         }
+
+        // Abstraction refinement is enabled and the sub-policy is determined to be "unsafe", need refinement and re-verification
         next = refine(pAbsRef);
     }
     logAABAC(__func__, __LINE__, 0, INFO, "round => %s\n", roundStr);
     return result;
 }
-
-// #include "bn_java.h"
-// #include <math.h>
-
-// char hexchars[] = "0123456789abcdef";
-
-// char *randomHexString(int len) {
-//     char *str = (char *)malloc(len + 1);
-//     for (int i = 0; i < len; i++) {
-//         str[i] = hexchars[rand() % 16];
-//     }
-//     str[len] = '\0';
-//     return str;
-// }
-
-// int testBigInteger() {
-//     BigInteger n1 = iBigInteger.createFromHexString(randomHexString(700));
-//     BigInteger n2 = iBigInteger.createFromHexString(randomHexString(700));
-//     BigInteger n3 = iBigInteger.createFromHexString(randomHexString(700));
-//     printf("n1: %s\n", iBigInteger.toHexString(n1));
-//     printf("n2: %s\n", iBigInteger.toHexString(n2));
-//     printf("n3: %s\n", iBigInteger.toHexString(n3));
-//     BigInteger tmp = iBigInteger.multiply(n1, n2);
-//     printf("tmp: %s\n", iBigInteger.toHexString(tmp));
-//     BigInteger result = iBigInteger.add(tmp, n2);
-//     printf("result: %s\n", iBigInteger.toHexString(result));
-//     tmp = iBigInteger.subtract(result, n3);
-//     printf("tmp: %s\n", iBigInteger.toHexString(tmp));
-//     result = iBigInteger.multiply(tmp, n3);
-//     printf("result: %s\n", iBigInteger.toHexString(result));
-//     return 0;
-// }
 
 int main(int argc, char *argv[]) {
     // testBigInteger();
@@ -235,9 +216,10 @@ int main(int argc, char *argv[]) {
     int useBMC = 1;
     int showRules = 1;
 
-    int bl = 4;
+    int bl = 3;
     char *modelCheckerPath = NULL;
     char *inputFilePath = NULL;
+    char *logDir = NULL;
     long timeout = 60;
 
     int unrecognized = 0;
@@ -247,6 +229,7 @@ int main(int argc, char *argv[]) {
         \n-h                          print this help text\
         \n-input <arg>                aabac file path\
         \n-model_checker <arg>        nusmv file path\
+        \n-log_dir <arg>              directory for storing logs\
         \n-no_absref                  no abstraction refinement\
         \n-no_precheck                no precheck\
         \n-no_slicing                 no slicing\
@@ -265,6 +248,7 @@ int main(int argc, char *argv[]) {
         {"no_rules", no_argument, 0, 'r'},
         {"model_checker", required_argument, 0, 'm'},
         {"input", required_argument, 0, 'i'},
+        {"log_dir", required_argument, 0, 'l'},
         {"timeout", required_argument, 0, 't'},
         {0, 0, 0, 0}};
 
@@ -272,7 +256,7 @@ int main(int argc, char *argv[]) {
     while (1) {
         int option_index = 0;
 
-        c = getopt_long_only(argc, argv, "hpsanb:rm:i:t:", long_options, &option_index);
+        c = getopt_long_only(argc, argv, "hpsanb:rm:i:l:t:", long_options, &option_index);
 
         if (c == -1)
             break;
@@ -311,6 +295,10 @@ int main(int argc, char *argv[]) {
             inputFilePath = (char *)malloc(strlen(optarg) + 1);
             strcpy(inputFilePath, optarg);
             break;
+        case 'l':
+            logDir = (char *)malloc(strlen(optarg) + 1);
+            strcpy(logDir, optarg);
+            break;
         case 't':
             timeout = atol(optarg);
             break;
@@ -328,9 +316,11 @@ int main(int argc, char *argv[]) {
         printf("please input the file path of aabac instance\n%s", helpMessage);
     } else if (!modelCheckerPath) {
         printf("please input the file path of model checker\n%s", helpMessage);
+    } else if (!logDir) {
+        printf("please input the directory for storing logs\n%s", helpMessage);
     } else {
         clock_t start = clock();
-        verify(modelCheckerPath, inputFilePath, doPrechecking, doSlicing, enableAbstractRefine, useBMC, bl, showRules, timeout);
+        verify(modelCheckerPath, inputFilePath, logDir, doPrechecking, doSlicing, enableAbstractRefine, useBMC, bl, showRules, timeout);
         clock_t end = clock();
         double time_spent = (double)(end - start) / CLOCKS_PER_SEC * 1000;
         logAABAC(__func__, __LINE__, 0, INFO, "end verification, cost => %.2fms\n", time_spent);

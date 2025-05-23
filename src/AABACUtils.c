@@ -6,7 +6,6 @@
 #include <time.h>
 
 #include "AABACUtils.h"
-#include "hashMap.h"
 
 void logAABAC(const char *func, int line, int logType, LogLevel logLevel, const char *format, ...) {
     char *logLevelStr = NULL;

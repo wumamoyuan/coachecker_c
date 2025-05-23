@@ -4,35 +4,31 @@
 
 #include <time.h>
 
-static int initialized = 0;
-
-// 用户名列表
 strCollection *pscUsers = NULL;
 
-// 用户名到索引的映射
 Dictionary *pdictUser2Index = NULL;
 
-// 属性名列表
 strCollection *pscAttrs = NULL;
 
-// 属性名到索引的映射
 Dictionary *pdictAttr2Index = NULL;
 
-// 值列表
 strCollection *pscValues = NULL;
 
-// 值到索引的映射
 Dictionary *pdictValue2Index = NULL;
 
-// 属性索引到属性类型的映射
 HashMap *pmapAttr2Type = NULL;
 
-// 属性索引到属性默认值的映射
 HashMap *pmapAttr2DefVal = NULL;
 
-// 规则列表
 Vector *pVecRules = NULL;
 
+/**
+ * Hash code for a rule index.
+ * If two rule indices point to two rules with the same content, they should have the same hash code.
+ * 
+ * @param pRuleIdx[in] A pointer to the rule index
+ * @return The hash code of the rule index
+ */
 static unsigned int RuleIdxHashCode(void *pRuleIdx) {
     int ruleIdx = *(int *)pRuleIdx;
     if (ruleIdx < 0 || ruleIdx >= iVector.Size(pVecRules)) {
@@ -43,6 +39,13 @@ static unsigned int RuleIdxHashCode(void *pRuleIdx) {
     return iRule.HashCode(pRule);
 }
 
+/**
+ * Check if two rule indices point to two rules with the same content.
+ * 
+ * @param pRuleIdx1[in] A pointer to the first rule index
+ * @param pRuleIdx2[in] A pointer to the second rule index
+ * @return 1 if the two rule indices point to two rules with the same content, 0 otherwise
+ */
 static int RuleIdxEqual(void *pRuleIdx1, void *pRuleIdx2) {
     int ruleIdx1 = *(int *)pRuleIdx1;
     int ruleIdx2 = *(int *)pRuleIdx2;
@@ -92,10 +95,10 @@ AABACInstance *createAABACInstance() {
         return NULL;
     }
 
-    pInst->pVecUserIdxes = iVector.Create(sizeof(int), 2);
+    pInst->pVecUserIndices = iVector.Create(sizeof(int), 2);
 
-    pInst->pmapAttr2Dom = iHashMap.Create(sizeof(int), sizeof(HashSet *), IntHashCode, IntEqual);
-    iHashMap.SetDestructValue(pInst->pmapAttr2Dom, iHashSet.DestructPointer); //0xc72fd0
+    pInst->pMapAttr2Dom = iHashMap.Create(sizeof(int), sizeof(HashSet *), IntHashCode, IntEqual);
+    iHashMap.SetDestructValue(pInst->pMapAttr2Dom, iHashSet.DestructPointer); //0xc72fd0
     pInst->pTableInitState = iHashBasedTable.Create(sizeof(int), sizeof(int), sizeof(int), IntHashCode, IntEqual, IntHashCode, IntEqual);
 
     pInst->pSetRuleIdxes = iHashSet.Create(sizeof(int), RuleIdxHashCode, RuleIdxEqual);
@@ -111,8 +114,8 @@ AABACInstance *createAABACInstance() {
 }
 
 void finalizeAABACInstance(AABACInstance *pInst) {
-    iVector.Finalize(pInst->pVecUserIdxes);
-    iHashMap.Finalize(pInst->pmapAttr2Dom);
+    iVector.Finalize(pInst->pVecUserIndices);
+    iHashMap.Finalize(pInst->pMapAttr2Dom);
     iHashBasedTable.Finalize(pInst->pTableInitState);
     iHashSet.Finalize(pInst->pSetRuleIdxes);
     iHashBasedTable.Finalize(pInst->pTableTargetAV2Rule);
@@ -120,39 +123,69 @@ void finalizeAABACInstance(AABACInstance *pInst) {
     iHashMap.Finalize(pInst->pmapQueryAVs);
 }
 
-char *attrIdxToString(void *pAttrIdx) {
+/**
+ * Get the attribute name from the attribute index.
+ * 
+ * @param pAttrIdx[in] A pointer to the attribute index
+ * @return A free-able attribute name
+ */
+static char *attrIdxToString(void *pAttrIdx) {
     char *attr = istrCollection.GetElement(pscAttrs, *(int *)pAttrIdx);
     return strdup(attr);
 }
 
-char *intValueIdxToString(void *pIntValIdx) {
+/**
+ * Convert an integer value index to a string.
+ * 
+ * @param pIntValIdx[in] A pointer to the integer value index
+ * @return A free-able integer value string
+ */
+static char *intValueIdxToString(void *pIntValIdx) {
     char *buffer = (char *)malloc(32);
     sprintf(buffer, "%d", *(int *)pIntValIdx);
     return buffer;
 }
 
-char *boolValueIdxToString(void *pBoolValIdx) {
+/**
+ * Convert a boolean value index to a string.
+ * 
+ * @param pBoolValIdx[in] A pointer to the boolean value index
+ * @return A free-able boolean value string
+ */
+static char *boolValueIdxToString(void *pBoolValIdx) {
     return *(int *)pBoolValIdx == 0 ? strdup("false") : strdup("true");
 }
 
-char *stringValueIdxToString(void *pStrValIdx) {
+/**
+ * Get the string value from the string value index.
+ * 
+ * @param pStrValIdx[in] A pointer to the string value index
+ * @return A free-able string value string
+ */
+static char *stringValueIdxToString(void *pStrValIdx) {
     return strdup(istrCollection.GetElement(pscValues, *(int *)pStrValIdx));
 }
 
-// 将属性值添加到属性域中
+/**
+ * Update the attribute domain @{pMapAttr2Dom} of the AABAC instance.
+ * 
+ * @param pInst[in] The AABAC instance
+ * @param attrType[in] The type of the attribute
+ * @param attrIdx[in] The index of the attribute
+ * @param valueIdx[in] The index of the value
+ */
 static void addAV(AABACInstance *pInst, AttrType attrType, int attrIdx, int valueIdx) {
-    HashSet *pDom, **ppDom = iHashMap.Get(pInst->pmapAttr2Dom, &attrIdx);
+    HashSet *pDom, **ppDom = iHashMap.Get(pInst->pMapAttr2Dom, &attrIdx);
     if (ppDom == NULL) {
         pDom = iHashSet.Create(sizeof(int), IntHashCode, IntEqual);
         ppDom = &pDom;
         iHashSet.SetElementToString(*ppDom, attrType == BOOLEAN ? boolValueIdxToString : attrType == INTEGER ? intValueIdxToString
                                                                                                              : stringValueIdxToString);
-        iHashMap.Put(pInst->pmapAttr2Dom, &attrIdx, ppDom);
+        iHashMap.Put(pInst->pMapAttr2Dom, &attrIdx, ppDom);
     }
     iHashSet.Add(*ppDom, &valueIdx);
 }
 
-// 将用户属性值对添加到初始状态表中，并更新属性域
 int addUAV(AABACInstance *pInst, char *user, char *attr, char *value) {
     int userIdx = getUserIndex(user);
     int attrIdx = getAttrIndex(attr);
@@ -168,7 +201,6 @@ int addUAV(AABACInstance *pInst, char *user, char *attr, char *value) {
     return 0;
 }
 
-// 将用户属性值对添加到初始状态表中，并更新属性域
 int addUAVByIdx(AABACInstance *pInst, int userIdx, int attrIdx, int valueIdx) {
     AttrType attrType = getAttrTypeByIdx(attrIdx);
     addAV(pInst, attrType, attrIdx, valueIdx);
@@ -176,7 +208,6 @@ int addUAVByIdx(AABACInstance *pInst, int userIdx, int attrIdx, int valueIdx) {
     return 0;
 }
 
-// 添加规则
 int addRule(AABACInstance *pInst, int ruleIdx) {
     if (iHashSet.Contains(pInst->pSetRuleIdxes, &ruleIdx)) {
         logAABAC(__func__, __LINE__, 0, DEBUG, "Rule exists\n");
@@ -318,6 +349,12 @@ int getInitValue(AABACInstance *pInst, int userIdx, int attrIdx) {
     return *pDefValIdx;
 }
 
+/**
+ * Get a string representation of the attribute-value pairs needed to satisfy the user condition of a rule.
+ * 
+ * @param r[in] The rule
+ * @return A free-able string representation of the attribute-value pairs
+ */
 static char *solution(Rule *r) {
     if (r->pmapUserCondValue == NULL) {
         return strdup("not defined");
@@ -354,6 +391,12 @@ static char *solution(Rule *r) {
     return mapToString(r->pmapUserCondValue, attrIdxToString, iHashSet.ToString);
 }
 
+/**
+ * Get a string representation of the comparison operator.
+ * 
+ * @param op[in] The comparison operator
+ * @return A free-able string representation of the comparison operator
+ */
 static char *getOpStr(comparisonOperator op) {
     switch (op) {
     case EQUAL:
@@ -373,6 +416,12 @@ static char *getOpStr(comparisonOperator op) {
     }
 }
 
+/**
+ * Get a string representation of a administrative condition or a user condition.
+ * 
+ * @param condition[in] A condition
+ * @return A free-able string representation of the condition
+ */
 static char *conditionToString(HashSet *condition) {
     char *atomCondStr = NULL;
     if (iHashSet.Size(condition) == 0) {
@@ -409,6 +458,12 @@ static char *conditionToString(HashSet *condition) {
     return atomCondStr;
 }
 
+/**
+ * Get a string representation of a rule.
+ * 
+ * @param ppRule[in] A pointer to the rule
+ * @return A free-able string representation of the rule
+ */
 char *RuleToString(void *ppRule) {
     Rule *r = *(Rule **)ppRule;
 
@@ -467,7 +522,7 @@ void init(AABACInstance *pInst) {
 
     /*计算值域*/
     HashMap *map = iHashMap.Create(sizeof(int), sizeof(int), IntHashCode, IntEqual);
-    int userNum = iVector.Size(pInst->pVecUserIdxes);
+    int userNum = iVector.Size(pInst->pVecUserIndices);
     int *pAttrIdx;
     int flag, *pFlag;
     if (iHashMap.Size(pInst->pTableInitState->pRowMap) == userNum) {
@@ -513,11 +568,11 @@ void init(AABACInstance *pInst) {
         pFlag = iHashMap.Get(map, pAttrIdx);
         if (pFlag == NULL || *pFlag != userNum) {
             pDefValIdx = (int *)nodeAttr2DefVal->value;
-            ppDom = iHashMap.Get(pInst->pmapAttr2Dom, pAttrIdx);
+            ppDom = iHashMap.Get(pInst->pMapAttr2Dom, pAttrIdx);
             if (ppDom == NULL) {
                 pDom = iHashSet.Create(sizeof(int), IntHashCode, IntEqual);
                 ppDom = &pDom;
-                iHashMap.Put(pInst->pmapAttr2Dom, pAttrIdx, ppDom);
+                iHashMap.Put(pInst->pMapAttr2Dom, pAttrIdx, ppDom);
                 iHashSet.SetElementToString(*ppDom, attrType == BOOLEAN ? boolValueIdxToString : attrType == INTEGER ? intValueIdxToString
                                                                                                                      : stringValueIdxToString);
             }
@@ -535,7 +590,7 @@ void init(AABACInstance *pInst) {
     while (itRules->HasNext(itRules)) {
         ruleIdx = *(int *)itRules->GetNext(itRules);
         r = (Rule *)iVector.GetElement(pVecRules, ruleIdx);
-        if (iRule.DiscreteCond(r, pInst->pmapAttr2Dom) != -1) {
+        if (iRule.DiscreteCond(r, pInst->pMapAttr2Dom) != -1) {
             iHashSet.Add(pSetNewRules, &ruleIdx);
         } else {
             rStr = RuleToString(&r);
@@ -550,11 +605,6 @@ void init(AABACInstance *pInst) {
     iHashSet.Clear(pInst->pSetRuleIdxes);
     iHashBasedTable.Clear(pInst->pTableTargetAV2Rule);
     iHashBasedTable.Clear(pInst->pTablePrecond2Rule);
-
-    // pInst->pTableTargetAV2Rule = iHashBasedTable.Create(sizeof(int), sizeof(int), sizeof(HashSet *), IntHashCode, IntEqual, IntHashCode, IntEqual);
-    // iHashBasedTable.SetDestructValue(pInst->pTableTargetAV2Rule, iHashSet.DestructPointer);
-    // pInst->pTablePrecond2Rule = iHashBasedTable.Create(sizeof(int), sizeof(int), sizeof(HashSet *), IntHashCode, IntEqual, IntHashCode, IntEqual);
-    // iHashBasedTable.SetDestructValue(pInst->pTablePrecond2Rule, iHashSet.DestructPointer);
 
     itRules = iHashSet.NewIterator(pSetNewRules);
     while (itRules->HasNext(itRules)) {

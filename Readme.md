@@ -11,18 +11,19 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
 1. Clone the repository
 2. Make sure you have the required dependencies:
    - gcc
-   - CMake
+   - cmake
 3. Download [nuXmv](https://nuxmv.fbk.eu/download.html)
    ```bash
    cd coachecker_c
-   wget -O nuXmv.tar.xz https://nuxmv.fbk.eu/theme/download.php?file=nuXmv-2.1.0-linux64.tar.xz
-   tar Jxvf nuXmv.tar.xz
+   wget -O nuXmv-2.1.0-linux64.tar.xz https://nuxmv.fbk.eu/theme/download.php?file=nuXmv-2.1.0-linux64.tar.xz
+   tar Jxvf nuXmv-2.1.0-linux64.tar.xz
+   mv nuXmv-2.1.0-linux64/ nuXmv
    ``` 
-4. Compile the project, the executable file will be in the bin directory
+4. Build and compile the project, the executable file will be in the bin directory
    ```bash
-   make build && cd build
-   cmake ../
-   make
+   cd bin
+   ./build.sh clean
+   ./build.sh
    ```
 
 ## Usage
@@ -57,7 +58,7 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
       ```bash
       cd coachecker_c/bin
       mkdir -p ../logs
-      nohup ./exp_pr.sh > ../logs/exp_pr.log 2>&1 &
+      nohup ./exp_pruning.sh > ../logs/exp_pruning.log 2>&1 &
       ```
       
 
@@ -74,7 +75,7 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
 
       ```bash
       cd coachecker_c/bin
-      nohup ./exp_ablation.sh > exp_ablation.log 2>&1 &
+      nohup ./exp_ablation.sh > ../logs/exp_ablation.log 2>&1 &
       ```
 
       Check the running status of the script

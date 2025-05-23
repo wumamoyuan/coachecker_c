@@ -1,81 +1,81 @@
 #include "AABACIO.h"
 #include "AABACUtils.h"
 
-/****************************************************************************************************
- * 功能：将AABAC实例中的用户集合写入指定文件中，格式为：
+#define USERS "Users"
+#define ATTRIBUTES "Attributes"
+#define DEFAULT_VALUE "Default Value"
+#define UAV "UAV"
+#define RULES "Rules"
+#define SPEC "Spec"
+
+/**
+ * Write the users of an AABAC instance to a file.
+ * The format is:
  *      Users
- *      user user ... user;
- *      其中Users为关键字，独占一行，user为用户集合中的用户，之间用空格分隔，最后以分号结束。
- * 参数：
- *      @fp[in]： 文件指针
- *      @pInst[in]： AABAC实例
- * 返回值：
- *      0：成功，-1：失败
- ***************************************************************************************************/
+ *      u u ... u;
+ * where Users is the keyword, u is a user in the user set, and each user is on a separate line, with the last user ending with a semicolon.
+ * 
+ * @param fp[in]: The file pointer
+ * @param pInst[in]: The AABAC instance
+ * @return 0 if write successfully, -1 if failed
+ */
 static int writeUsers(FILE *fp, AABACInstance *pInst) {
     logAABAC(__func__, __LINE__, 0, DEBUG, "[Writing] Writing users\n");
-    if (pInst->pVecUserIdxes == NULL) {
+    if (pInst->pVecUserIndices == NULL) {
         logAABAC(__func__, __LINE__, 0, ERROR, "[Writing] Users is a NULL pointer\n");
         return -1;
     }
 
     fprintf(fp, USERS);
-    // 遍历用户集合，写入文件
-    int i = 0, userNum = iVector.Size(pInst->pVecUserIdxes);
+    int i = 0, userNum = iVector.Size(pInst->pVecUserIndices);
     if (userNum == 0) {
         logAABAC(__func__, __LINE__, 0, ERROR, "[Writing] The set of users is empty\n");
         return -1;
     }
-    fprintf(fp, "\n%s", istrCollection.GetElement(pscUsers, *(int *)iVector.GetElement(pInst->pVecUserIdxes, i++)));
+    fprintf(fp, "\n%s", istrCollection.GetElement(pscUsers, *(int *)iVector.GetElement(pInst->pVecUserIndices, i++)));
     while (i < userNum) {
-        fprintf(fp, " %s", istrCollection.GetElement(pscUsers, *(int *)iVector.GetElement(pInst->pVecUserIdxes, i++)));
+        fprintf(fp, " %s", istrCollection.GetElement(pscUsers, *(int *)iVector.GetElement(pInst->pVecUserIndices, i++)));
     }
     fprintf(fp, ";\n\n");
     return 0;
 }
 
-/****************************************************************************************************
- * 功能：将AABAC实例中的属性集合与各属性的默认值写入指定文件中。
- *       属性集合的格式为：
+/**
+ * Write the attributes and default values of an AABAC instance to a file.
+ * The format of the attributes is:
  *       Attributes
- *       boolean: attr attr ... attr
- *       string: attr attr ... attr
- *       int: attr attr ... attr;
- *       其中Attributes为关键字，独占一行，boolean、string、int为属性的数据类型，每种数据类型的属性集合独占一行，
- *       attr为属性集合中的属性，之间用空格分隔，最后以分号结束。
- *
- *       属性的默认值的格式为：
+ *       boolean: a a ... a
+ *       string: a a ... a
+ *       int: a a ... a;
+ * where Attributes is the keyword, boolean, string, and int are the data types of the attributes, and a is an attribute in the attribute set.
+ * 
+ * The format of the default values of the attributes is:
  *       Default Value
- *       attr: defaultValue
- *       attr: defaultValue
+ *       a: dv
+ *       a: dv
  *       ...
- *       attr: defaultValue;
- *       其中Default Value为关键字，独占一行，attr为属性集合中的属性，defaultValue为属性的默认值，
- *       每个属性的默认值独占一行，属性与默认值之间用冒号分隔，最后一组以分号结束。
- *       注意：如果出现以下三种情况，则不写入默认值。
- *       1）属性为布尔类型且默认值为false；
- *       2）属性为字符串类型且默认值为空字符串；
- *       3）属性为整数类型且默认值为0。
- * 参数：
- *      @fp[in]： 文件指针
- *      @pInst[in]： AABAC实例
- * 返回值：
- *      0：成功，-1：失败
- ***************************************************************************************************/
+ *       a: dv;
+ * where Default Value is the keyword, a is an attribute in the attribute set, and dv is the default value of the attribute a.
+ * Each default value is on a separate line, with the last default value ending with a semicolon.
+ * Note: If the attribute is of type boolean and the default value is false, or the attribute is of type string and the default value is an empty string, or the attribute is of type int and the default value is 0, then the default value is not written.
+ * 
+ * @param fp[in]: The file pointer
+ * @param pInst[in]: The AABAC instance
+ * @return 0 if write successfully, -1 if failed
+ */
 static int writeAttrsAndDefaultValues(FILE *fp, AABACInstance *pInst) {
-    if (iHashMap.Size(pInst->pmapAttr2Dom) == 0) {
+    if (iHashMap.Size(pInst->pMapAttr2Dom) == 0) {
         logAABAC(__func__, __LINE__, 0, ERROR, "[Writing] The set of attributes is empty\n");
         return -1;
     }
 
-    // HashSet<String>
     HashSet *attrs[3];
     int i = 0;
     for (i = 0; i < 3; i++) {
         attrs[i] = iHashSet.Create(sizeof(int), IntHashCode, IntEqual);
     }
 
-    HashNodeIterator *itmapAttr2Dom = iHashMap.NewIterator(pInst->pmapAttr2Dom);
+    HashNodeIterator *itmapAttr2Dom = iHashMap.NewIterator(pInst->pMapAttr2Dom);
     HashNode *node;
     int *pAttrIdx;
     AttrType attrType;
@@ -87,7 +87,7 @@ static int writeAttrsAndDefaultValues(FILE *fp, AABACInstance *pInst) {
     }
     iHashMap.DeleteIterator(itmapAttr2Dom);
 
-    // 写入属性及其数据类型
+    // Write the attributes and their data types
     fprintf(fp, ATTRIBUTES);
     HashSetIterator *itHashSet;
     char *typename;
@@ -105,7 +105,7 @@ static int writeAttrsAndDefaultValues(FILE *fp, AABACInstance *pInst) {
     }
     fprintf(fp, ";\n\n");
 
-    // 写入各属性的默认值
+    // Write the default values of the attributes
     fprintf(fp, DEFAULT_VALUE);
     int defaultValueIdx;
     int f = 0;
@@ -135,21 +135,21 @@ static int writeAttrsAndDefaultValues(FILE *fp, AABACInstance *pInst) {
     return 0;
 }
 
-/****************************************************************************************************
- * 功能：将AABAC实例中初始状态下的用户属性值集合写入指定文件中，格式为：
+/**
+ * Write the user attribute values of the initial state of an AABAC instance to a file.
+ * The format is:
  *      UAV
- *      (user, attr, value)
- *      (user, attr, value)
+ *      (u, a, v)
+ *      (u, a, v)
  *      ...
- *      (user, attr, value);
- *      其中UAV为关键字，独占一行，user为用户，attr为属性，value为属性值，
- *      每组用户属性值独占一行，user、attr、value之间用逗号分隔且用小括号()括起来，最后一组以分号结束。
- * 参数：
- *      @fp[in]： 文件指针
- *      @pInst[in]： AABAC实例
- * 返回值：
- *      0：成功，-1：失败
- ***************************************************************************************************/
+ *      (u, a, v);
+ * where UAV is the keyword, u is a user, a is an attribute, and v is a value of the attribute a.
+ * Each group of user attribute values is on a separate line, with the last group ending with a semicolon.
+ * 
+ * @param fp[in]: The file pointer
+ * @param pInst[in]: The AABAC instance
+ * @return 0 if write successfully, -1 if failed
+ */
 static int writeUAVs(FILE *fp, AABACInstance *pInst) {
     logAABAC(__func__, __LINE__, 0, DEBUG, "[Writing] Writing UAV\n");
     if (pInst->pTableInitState == NULL) {
@@ -196,20 +196,20 @@ static int writeUAVs(FILE *fp, AABACInstance *pInst) {
     return 0;
 }
 
-/****************************************************************************************************
- * 功能：将AABAC实例中的规则集合写入指定文件中，格式为：
+/**
+ * Write the rules of an AABAC instance to a file.
+ * The format is:
  *      Rules
- *      rule
- *      rule
+ *      r
+ *      r
  *      ...
- *      rule;
- *      其中Rules为关键字，独占一行，rule为规则集合中的规则，每个规则独占一行，最后一条规则以分号结束。
- * 参数：
- *      @fp[in]： 文件指针
- *      @pInst[in]： AABAC实例
- * 返回值：
- *      0：成功，-1：失败
- ***************************************************************************************************/
+ *      r;
+ * where Rules is the keyword, r is a rule in the rule set, and each rule is on a separate line, with the last rule ending with a semicolon.
+ * 
+ * @param fp[in]: The file pointer
+ * @param pInst[in]: The AABAC instance
+ * @return 0 if write successfully, -1 if failed
+ */
 static int writeRules(FILE *fp, AABACInstance *pInst) {
     logAABAC(__func__, __LINE__, 0, DEBUG, "[Writing] Writing rules\n");
     if (pVecRules == NULL || pInst->pSetRuleIdxes == NULL) {
@@ -223,7 +223,6 @@ static int writeRules(FILE *fp, AABACInstance *pInst) {
         return 0;
     }
 
-    // 遍历规则集合，写入文件
     int ruleIdx;
     char *rStr;
     Rule *pRule;
@@ -240,17 +239,18 @@ static int writeRules(FILE *fp, AABACInstance *pInst) {
     return 0;
 }
 
-/****************************************************************************************************
- * 功能：将AABAC实例中的查询目标写入指定文件中，格式为：
+/**
+ * Write the safety query of an AABAC instance to a file.
+ * The format is:
  *      Spec
- *      (user, attr = value, attr = value, ..., attr = value);
- *      其中Spec为关键字，独占一行，user为待查询的用户，attr为属性，value为属性值。
- * 参数：
- *      @fp[in]： 文件指针
- *      @pInst[in]： AABAC实例
- * 返回值：
- *      0：成功，-1：失败
- ***************************************************************************************************/
+ *      (u, a = v, a = v, ..., a = v);
+ * where Spec is the keyword, u is the target user, a is an attribute, and v is a value of the attribute a.
+ * 
+ * 
+ * @param fp[in]: The file pointer
+ * @param pInst[in]: The AABAC instance
+ * @return 0 if write successfully, -1 if failed
+ */
 static int writeSpec(FILE *fp, AABACInstance *pInst) {
     logAABAC(__func__, __LINE__, 0, DEBUG, "[Writing] Writing spec\n");
     if (pInst->pmapQueryAVs == NULL) {

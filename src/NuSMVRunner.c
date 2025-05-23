@@ -55,6 +55,7 @@ static char *run(char *cmdPath, char *args[], char *resultFilePath, long timeout
     if (pid == 0) {                     // Child process
         close(pipefd[0]);               // Close read end
         dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe
+        dup2(pipefd[1], STDERR_FILENO); // Redirect stderr to pipe
         close(pipefd[1]);
 
         execv(cmdPath, args);
@@ -161,27 +162,31 @@ static char *run(char *cmdPath, char *args[], char *resultFilePath, long timeout
     return output ? output : strdup("");
 }
 
-char *runOnSMCMode(char *modelCheckerPath, char *nusmvFilePath, char *resultFilePath, long timeout) {
-    logAABAC(__func__, __LINE__, 0, INFO, "[start] running model checker on smc mode\n");
-    clock_t startRunOnSMCMode = clock();
+char *runModelChecker(char *modelCheckerPath, char *nusmvFilePath, char *resultFilePath, long timeout, char *bound) {
+    int bmc;
+    char *args[6];
+    if (bound == NULL) {
+        logAABAC(__func__, __LINE__, 0, INFO, "[start] running model checker on smc mode\n");
+        bmc = 0;
+        args[0] = modelCheckerPath;
+        args[1] = nusmvFilePath;
+        args[2] = NULL;
+    } else {
+        logAABAC(__func__, __LINE__, 0, INFO, "[start] running model checker on bmc mode, the bound is set to %s\n", bound);
+        bmc = 1;
+        args[0] = modelCheckerPath;
+        args[1] = "-bmc";
+        args[2] = "-bmc_length";
+        args[3] = bound;
+        args[4] = nusmvFilePath;
+        args[5] = NULL;
+    }
+    clock_t startRun = clock();
 
-    char *args[] = {modelCheckerPath, nusmvFilePath, NULL};
     char *result = run(modelCheckerPath, args, resultFilePath, timeout);
 
-    double spentTime = (clock() - startRunOnSMCMode) / CLOCKS_PER_SEC * 1000;
-    logAABAC(__func__, __LINE__, 0, INFO, "[end] running model checker on smc mode, cost => %.2fms\n", spentTime);
-    return result;
-}
-
-char *runOnBMCMode(char *modelCheckerPath, char *nusmvFilePath, char *resultFilePath, long timeout, char *bound) {
-    logAABAC(__func__, __LINE__, 0, INFO, "[start] running model checker on bmc mode, the bound is set to %s\n", bound);
-    clock_t startRunOnBMCMode = clock();
-
-    char *args[] = {modelCheckerPath, "-bmc", "-bmc_length", bound, nusmvFilePath, NULL};
-    char *result = run(modelCheckerPath, args, resultFilePath, timeout);
-
-    double spentTime = (clock() - startRunOnBMCMode) / CLOCKS_PER_SEC * 1000;
-    logAABAC(__func__, __LINE__, 0, INFO, "[end] running model checker on bmc mode, cost => %.2fms\n", spentTime);
+    double spentTime = (clock() - startRun) / CLOCKS_PER_SEC * 1000;
+    logAABAC(__func__, __LINE__, 0, INFO, "[end] running model checker on %s mode, cost => %.2fms\n", bmc ? "bmc" : "smc", spentTime);
     return result;
 }
 

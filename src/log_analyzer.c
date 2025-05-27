@@ -136,55 +136,59 @@ static int analyzeLogFile(char *logFile, int tool, char *timecost) {
 
 int main(int argc, char *argv[]) {
     char *helpMessage = "Usage: log_analyzer\
-        \n[-c|--coachecker-logdir] <arg>  the directory saving coachecker log files\
-        \n[-m|--mohawk-logdir] <arg>      the directory saving mohawk log files\
-        \n[-v|--vac-logdir] <arg>         the directory saving vac log files\
-        \n[-o|--output-csvfile] <arg>     the path of the output csv file\
-        \n[-a|--ablation]                 coachecker log directory contains ablation results\n";
+        \n[-l|--logdir] <arg>   t       he directory saving log files\
+        \n[-c|--coachecker]             analyze coachecker log files\
+        \n[-m|--mohawk]                 analyze mohawk log files\
+        \n[-v|--vac]                    analyze vac log files\
+        \n[-a|--ablation]               analyze ablation results\
+        \n[-o|--output-csvfile] <arg>   the path of the output csv file\n";
 
-    char *coacheckerLogDir = NULL;
-    char *mohawkLogDir = NULL;
-    char *vacLogDir = NULL;
-    char *outputCsvFile = NULL;
+    char *logDir = NULL;
+    int coachecker = 0;
+    int mohawk = 0;
+    int vac = 0;
     int ablation = 0;
+    char *outputCsvFile = NULL;
 
     int unrecognized = 0;
 
     static struct option long_options[] = {
-        {"coachecker-logdir", required_argument, 0, 'c'},
-        {"mohawk-logdir", required_argument, 0, 'm'},
-        {"vac-logdir", required_argument, 0, 'v'},
-        {"output-csvfile", required_argument, 0, 'o'},
+        {"logdir", required_argument, 0, 'l'},
+        {"coachecker", no_argument, 0, 'c'},
+        {"mohawk", no_argument, 0, 'm'},
+        {"vac", no_argument, 0, 'v'},
         {"ablation", no_argument, 0, 'a'},
+        {"output-csvfile", required_argument, 0, 'o'},
         {0, 0, 0, 0}};
 
     int c;
     while (1) {
         int option_index = 0;
 
-        c = getopt_long(argc, argv, "c:m:v:o:a", long_options, &option_index);
+        c = getopt_long(argc, argv, "l:cmvao:", long_options, &option_index);
         if (c == -1)
             break;
 
         switch (c) {
+        case 'l':
+            logDir = (char *)malloc(strlen(optarg) + 1);
+            strcpy(logDir, optarg);
+            break;
         case 'c':
-            coacheckerLogDir = (char *)malloc(strlen(optarg) + 1);
-            strcpy(coacheckerLogDir, optarg);
+            coachecker = 1;
             break;
         case 'm':
-            mohawkLogDir = (char *)malloc(strlen(optarg) + 1);
-            strcpy(mohawkLogDir, optarg);
+            mohawk = 1;
             break;
         case 'v':
-            vacLogDir = (char *)malloc(strlen(optarg) + 1);
-            strcpy(vacLogDir, optarg);
+            vac = 1;
+            break;
+        case 'a':
+            ablation = 1;
             break;
         case 'o':
             outputCsvFile = (char *)malloc(strlen(optarg) + 1);
             strcpy(outputCsvFile, optarg);
-            break;
-        case 'a':
-            ablation = 1;
             break;
         default:
             unrecognized = 1;
@@ -198,13 +202,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (coacheckerLogDir == NULL) {
-        printf("Error: coachecker log directory is required\n");
+    if (logDir == NULL) {
+        printf("Error: log directory is required\n");
         printf("%s\n", helpMessage);
         return 1;
     }
-    printf("coacheckerLogDir: %s\n", coacheckerLogDir);
-    char *coacheckerLogFile = (char *)malloc(strlen(coacheckerLogDir) + 50);
+    printf("log directory: %s\n", logDir);
+    char *logFile = (char *)malloc(strlen(logDir) + 50);
 
     FILE *fpOutputCsv = NULL;
     if (outputCsvFile != NULL) {
@@ -215,29 +219,28 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    char *mohawkLogFile = NULL, *vacLogFile = NULL;
-
     char line[1024];
     // print the header
-    strcpy(line, "index,coachecker");
+    strcpy(line, "index");
+    if (coachecker || ablation) {
+        strcat(line, ",coachecker");
+    }
     if (ablation) {
         strcat(line, ",noslicing,noabsref,smc");
     }
-    if (mohawkLogDir != NULL) {
+    if (mohawk) {
         strcat(line, ",mohawk");
-        mohawkLogFile = (char *)malloc(strlen(mohawkLogDir) + 50);
     }
-    if (vacLogDir != NULL) {
+    if (vac) {
         strcat(line, ",vac");
-        vacLogFile = (char *)malloc(strlen(vacLogDir) + 50);
     }
     printf("%s\n", line);
     if (fpOutputCsv != NULL) {
         fprintf(fpOutputCsv, "%s\n", line);
     }
 
-    char *ablationSuffixes[] = {"all", "noslicing", "noabsref", "smc"};
-    int ablationSuffixNum = 4;
+    char *ablationSuffixes[] = {"noslicing", "noabsref", "smc"};
+    int ablationSuffixNum = 3;
 
     int ret;
     int instanceNum = 50;
@@ -245,12 +248,25 @@ int main(int argc, char *argv[]) {
     for (int i = 1; i <= instanceNum; i++) {
         sprintf(line, "%d", i);
 
+        if (coachecker || ablation) {
+            sprintf(logFile, "%s/output%d-all.txt", logDir, i);
+            ret = analyzeLogFile(logFile, 0, timecost);
+            if (ret) {
+                printf("Failed to analyze file %s!\n", logFile);
+                if (fpOutputCsv != NULL) {
+                    fclose(fpOutputCsv);
+                }
+                return 1;
+            }
+            strcat(line, ",");
+            strcat(line, timecost);
+        }
         if (ablation) {
             for (int j = 0; j < ablationSuffixNum; j++) {
-                sprintf(coacheckerLogFile, "%s/output%d-%s.txt", coacheckerLogDir, i, ablationSuffixes[j]);
-                ret = analyzeLogFile(coacheckerLogFile, 0, timecost);
+                sprintf(logFile, "%s/output%d-%s.txt", logDir, i, ablationSuffixes[j]);
+                ret = analyzeLogFile(logFile, 0, timecost);
                 if (ret) {
-                    printf("Failed to analyze file %s!\n", coacheckerLogFile);
+                    printf("Failed to analyze file %s!\n", logFile);
                     if (fpOutputCsv != NULL) {
                         fclose(fpOutputCsv);
                     }
@@ -259,11 +275,12 @@ int main(int argc, char *argv[]) {
                 strcat(line, ",");
                 strcat(line, timecost);
             }
-        } else {
-            sprintf(coacheckerLogFile, "%s/output%d.txt", coacheckerLogDir, i);
-            ret = analyzeLogFile(coacheckerLogFile, 0, timecost);
+        }
+        if (mohawk) {
+            sprintf(logFile, "%s/output%d-mohawk.txt", logDir, i);
+            ret = analyzeLogFile(logFile, 1, timecost);
             if (ret) {
-                printf("Failed to analyze file %s!\n", coacheckerLogFile);
+                printf("Failed to analyze file %s!\n", logFile);
                 if (fpOutputCsv != NULL) {
                     fclose(fpOutputCsv);
                 }
@@ -272,24 +289,11 @@ int main(int argc, char *argv[]) {
             strcat(line, ",");
             strcat(line, timecost);
         }
-        if (mohawkLogDir != NULL) {
-            sprintf(mohawkLogFile, "%s/output%d.txt", mohawkLogDir, i);
-            ret = analyzeLogFile(mohawkLogFile, 1, timecost);
+        if (vac) {
+            sprintf(logFile, "%s/output%d-vac.txt", logDir, i);
+            ret = analyzeLogFile(logFile, 2, timecost);
             if (ret) {
-                printf("Failed to analyze file %s!\n", mohawkLogFile);
-                if (fpOutputCsv != NULL) {
-                    fclose(fpOutputCsv);
-                }
-                return 1;
-            }
-            strcat(line, ",");
-            strcat(line, timecost);
-        }
-        if (vacLogDir != NULL) {
-            sprintf(vacLogFile, "%s/output%d.txt", vacLogDir, i);
-            ret = analyzeLogFile(vacLogFile, 2, timecost);
-            if (ret) {
-                printf("Failed to analyze file %s!\n", vacLogFile);
+                printf("Failed to analyze file %s!\n", logFile);
                 if (fpOutputCsv != NULL) {
                     fclose(fpOutputCsv);
                 }

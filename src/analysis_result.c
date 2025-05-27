@@ -1,6 +1,11 @@
 #include "AABACResult.h"
 #include "AABACUtils.h"
 
+/**
+ * Print an administrative action.
+ * 
+ * @param action[in]: The administrative action to print
+ */
 static void printAction(AdminstrativeAction action) {
     printf("(");
     printf("%s,", istrCollection.GetElement(pscUsers, action.adminIdx));

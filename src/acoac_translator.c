@@ -50,7 +50,7 @@ static void computeAttrDom(AABACInstance *pInst) {
  * @param instance[in]: 待翻译的AABAC实例
  * @param fp[in]: 输出文件
  */
-void translateVars(AABACInstance *pInst, FILE *fp) {
+static void translateVars(AABACInstance *pInst, FILE *fp) {
     fprintf(fp, "VAR\n");
 
     // 定义变量
@@ -111,7 +111,7 @@ void translateVars(AABACInstance *pInst, FILE *fp) {
  * @param instance[in]: 待翻译的AABAC实例
  * @param fp[in]: 输出文件
  */
-void translateInitState(AABACInstance *pInst, FILE *fp) {
+static void translateInitState(AABACInstance *pInst, FILE *fp) {
     fprintf(fp, "ASSIGN\n");
 
     HashMap *avsOfUser = iHashBasedTable.GetRow(pInst->pTableInitState, &pInst->queryUserIdx);

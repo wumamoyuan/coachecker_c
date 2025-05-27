@@ -1,7 +1,14 @@
 #include "AABACBoundCalculator.h"
 #include "AABACUtils.h"
 
-static BigInteger compute1(AABACInstance *pInst) {
+/**
+ * Estimate a loose bound for an AABAC instance.
+ * It equals to the product of the domain sizes of all attributes.
+ * 
+ * @param pInst[in]: An AABAC instance
+ * @return The loose bound of the AABAC instance
+ */
+static BigInteger computeLooseBound(AABACInstance *pInst) {
     BigInteger bound = iBigInteger.createFromInt(1);
     BigInteger tmp;
     HashNodeIterator *it = iHashMap.NewIterator(pInst->pMapAttr2Dom);
@@ -22,52 +29,53 @@ static BigInteger compute1(AABACInstance *pInst) {
     return bound;
 }
 
-/**
- * attr'是目标属性，attr''是其它属性
- * |Dom(attr''1)|*...*|Dom(attr''m)|*(|Dom(attr'1)|*...*|Dom(attr'n)| - 1)
- * @param pInst[in]: 待翻译的AABAC实例
- * @return
- */
-static BigInteger compute2(AABACInstance *pInst) {
-    BigInteger boundPart1 = iBigInteger.createFromInt(1);
-    BigInteger boundPart2 = iBigInteger.createFromInt(1);
-    BigInteger tmp;
-    int domSize;
-    char *attr;
-    HashNode *pNode;
-    HashNodeIterator *it = iHashMap.NewIterator(pInst->pMapAttr2Dom);
-    while (it->HasNext(it)) {
-        pNode = it->GetNext(it);
-        attr = istrCollection.GetElement(pscAttrs, *(int *)pNode->key);
-        if (strcmp(attr, "Admin") == 0) {
-            continue;
-        }
-        domSize = iHashSet.Size(*(HashSet **)pNode->value);
-        if (!iHashMap.ContainsKey(pInst->pmapQueryAVs, pNode->key)) {
-            tmp = iBigInteger.multiplyByInt(boundPart1, domSize);
-            iBigInteger.finalize(boundPart1);
-            boundPart1 = tmp;
-        } else {
-            tmp = iBigInteger.multiplyByInt(boundPart2, domSize);
-            iBigInteger.finalize(boundPart2);
-            boundPart2 = tmp;
-        }
-    }
-    iHashMap.DeleteIterator(it);
+// /**
+//  * attr'是目标属性，attr''是其它属性
+//  * |Dom(attr''1)|*...*|Dom(attr''m)|*(|Dom(attr'1)|*...*|Dom(attr'n)| - 1)
+//  * @param pInst[in]: 待翻译的AABAC实例
+//  * @return
+//  */
+// static BigInteger compute2(AABACInstance *pInst) {
+//     BigInteger boundPart1 = iBigInteger.createFromInt(1);
+//     BigInteger boundPart2 = iBigInteger.createFromInt(1);
+//     BigInteger tmp;
+//     int domSize;
+//     char *attr;
+//     HashNode *pNode;
+//     HashNodeIterator *it = iHashMap.NewIterator(pInst->pMapAttr2Dom);
+//     while (it->HasNext(it)) {
+//         pNode = it->GetNext(it);
+//         attr = istrCollection.GetElement(pscAttrs, *(int *)pNode->key);
+//         if (strcmp(attr, "Admin") == 0) {
+//             continue;
+//         }
+//         domSize = iHashSet.Size(*(HashSet **)pNode->value);
+//         if (!iHashMap.ContainsKey(pInst->pmapQueryAVs, pNode->key)) {
+//             tmp = iBigInteger.multiplyByInt(boundPart1, domSize);
+//             iBigInteger.finalize(boundPart1);
+//             boundPart1 = tmp;
+//         } else {
+//             tmp = iBigInteger.multiplyByInt(boundPart2, domSize);
+//             iBigInteger.finalize(boundPart2);
+//             boundPart2 = tmp;
+//         }
+//     }
+//     iHashMap.DeleteIterator(it);
 
-    tmp = iBigInteger.subtractByInt(boundPart2, 1);
-    BigInteger bound = iBigInteger.multiply(boundPart1, tmp);
-    iBigInteger.finalize(boundPart1);
-    iBigInteger.finalize(boundPart2);
-    iBigInteger.finalize(tmp);
-    return bound;
-}
+//     tmp = iBigInteger.subtractByInt(boundPart2, 1);
+//     BigInteger bound = iBigInteger.multiply(boundPart1, tmp);
+//     iBigInteger.finalize(boundPart1);
+//     iBigInteger.finalize(boundPart2);
+//     iBigInteger.finalize(tmp);
+//     return bound;
+// }
 
 /**
- * 使用二分查找，将给定整数插入降序排列的数组中，并使数组保持降序
- * @param array[in]: 待插入的数组
- * @param len[in]: 数组长度
- * @param n[in]: 待插入的整数
+ * Use binary search to insert an integer into a descendingly sorted array, and keep the array descending.
+ * 
+ * @param array[in]: The array to insert the integer into
+ * @param len[in]: The length of the array
+ * @param n[in]: The integer to insert
  */
 void insertDesc(int *array, int len, int n) {
     int left = 0, right = len - 1, mid;
@@ -87,17 +95,19 @@ void insertDesc(int *array, int len, int n) {
 }
 
 /**
- * 设A_1是一个属性集合，其中a属于A_1当前仅当不存在任何以(a,InitUAV(u_t, a))为目标属性值的规则
- * 设A是所有属性构成的集合，并且A_2=A\A_1
- * 再设A_1中的属性按取值个数降序排列为a_11,a_12,...,a_1m，
- * 设A_2中的属性为a_21,a_22,...,a_2n
- * 那么上界不超过|Dom(a_21)|*|Dom(a_22)|*...|Dom(a_2n)|*P
- * 其中P=1+(|Dom(a_11)|-1)+(|Dom(a_11)|-1)*(|Dom(a_12)|-1)+...+(|Dom(a_11)|-1)*...*(|Dom(a_1m)|-1)
+ * Estimate a tight bound for an AABAC instance.
+ * 
+ * Let A_1 be a set of attributes, where a belongs to A_1 if and only if there is no rule with (a,InitUAV(u_t, a)) as the target attribute value.
+ * Let A be the set of all attributes, and A_2=A\A_1.
+ * Let the attributes in A_1 be sorted in descending order of their domain sizes as a_11,a_12,...,a_1m.
+ * Let the attributes in A_2 be a_21,a_22,...,a_2n.
+ * Then the upper bound is less than or equal to |Dom(a_21)|*|Dom(a_22)|*...|Dom(a_2n)|*P,
+ * where P=1+(|Dom(a_11)|-1)+(|Dom(a_11)|-1)*(|Dom(a_12)|-1)+...+(|Dom(a_11)|-1)*...*(|Dom(a_1m)|-1).
  *
- * @param pInst[in]: 待翻译的AABAC实例
- * @return
+ * @param pInst[in]: An AABAC instance
+ * @return The tight bound of the AABAC instance
  */
-static BigInteger compute3(AABACInstance *pInst) {
+static BigInteger computeTightBound(AABACInstance *pInst) {
     HashMap *pMapInitAVs = iHashBasedTable.GetRow(pInst->pTableInitState, &pInst->queryUserIdx);
     int attrNum = iHashMap.Size(pInst->pMapAttr2Dom);
     int attrs1[attrNum], attrs4[attrNum], attrs1MinusQueryAttrs[attrNum], attrs4MinusQueryAttrs[attrNum];
@@ -118,25 +128,25 @@ static BigInteger compute3(AABACInstance *pInst) {
         pInitValIdx = (int *)iHashMap.Get(pMapInitAVs, pAttrIdx);
         pQueryValIdx = (int *)iHashMap.Get(pInst->pmapQueryAVs, pAttrIdx);
         if (iHashBasedTable.Get(pInst->pTableTargetAV2Rule, pAttrIdx, pInitValIdx) == NULL) {
-            // attr is non restorable，即初始值一旦被修改，则无法恢复
+            // attr is non restorable, i.e., once the initial value is modified, it cannot be restored
             if (pQueryValIdx == NULL) {
-                // attr不是被查询属性，it is not already-satisfied
+                // attr is not a target attribute of the query, so it is not already satisfied
                 attrs4MinusQueryAttrs[attrs4MinusQueryAttrsLen++] = domSize;
                 insertDesc(attrs4, attrs4Len++, domSize);
             } else if (*pQueryValIdx != *pInitValIdx) {
-                // attr是被查询属性，但初始值不等于被查询值，it is not already-satisfied
+                // attr is a target attribute of the query, but the initial value is not equal to the query value, so it is not already satisfied
                 insertDesc(attrs4, attrs4Len++, domSize);
             }
         } else {
             if (pQueryValIdx == NULL) {
                 attrs1MinusQueryAttrs[attrs1MinusQueryAttrsLen++] = domSize;
             }
-            // attr is restorable，即初始值被修改后可以恢复
+            // attr is restorable, i.e., once the initial value is modified, it can be restored
             attrs1[attrs1Len++] = domSize;
         }
     }
     iHashMap.DeleteIterator(it);
-    // 计算P=1+(|Dom(a_11)|-1)+(|Dom(a_11)|-1)*(|Dom(a_12)|-1)+...+(|Dom(a_11)|-1)*...*(|Dom(a_1m)|-1)
+    // Calculate P=1+(|Dom(a_11)|-1)+(|Dom(a_11)|-1)*(|Dom(a_12)|-1)+...+(|Dom(a_11)|-1)*...*(|Dom(a_1m)|-1)
     BigInteger boundPart1 = iBigInteger.createFromInt(1);
     BigInteger product = iBigInteger.createFromInt(1);
     BigInteger tmp;
@@ -180,28 +190,12 @@ static BigInteger compute3(AABACInstance *pInst) {
     return bound;
 }
 
-static BigInteger compute4(AABACInstance *pInst) {
-    return ZERO;
-}
-
-/****************************************************************************************************
- * 功能：为有界模型检测计算AABAC实例的界
- * 参数：
- *      @pInst[in]: 待翻译的AABAC实例
- *      @boundLevel[in]: 界的紧度，共4级，1为最松，4为最紧
- * 返回值：
- *      无
- ****************************************************************************************************/
-BigInteger computeBound(AABACInstance *pInst, int boundLevel) {
-    switch (boundLevel) {
+BigInteger computeBound(AABACInstance *pInst, int tl) {
+    switch (tl) {
     case 1:
-        return compute1(pInst);
+        return computeLooseBound(pInst);
     case 2:
-        return compute2(pInst);
-    case 3:
-        return compute3(pInst);
-    case 4:
-        return compute4(pInst);
+        return computeTightBound(pInst);
     default:
         return ZERO;
     }

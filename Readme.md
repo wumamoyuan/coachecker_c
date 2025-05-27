@@ -31,13 +31,14 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
 1. **To analyze an ACoAC policy file:**
 
    ```bash
-   ./coachecker -model_checker <nuXmv_path> -input <policy_file> -timeout <timeout_threshold_in_seconds>
+   ./coachecker -model_checker <nuXmv_path> -input <policy_file> -timeout <timeout_threshold_in_seconds> -l <log_dir>
    ```
 
    Example:
    ```bash
-   ./coachecker -model_checker ../nuXmv/bin/nuXmv -input ../demo/test1.aabac -timeout 60
+   ./coachecker -model_checker ../nuXmv/bin/nuXmv -input ../demo/demo1.aabac -timeout 60 -l ../logs
    ```
+
    For more options, please see the help message:
    ```bash
    ./coachecker -h
@@ -50,7 +51,6 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
       ```bash
       cd coachecker_c
       mkdir data && cd data
-      
       ```
    
    - Run the following script and wait for it to complete
@@ -58,9 +58,8 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
       ```bash
       cd coachecker_c/bin
       mkdir -p ../logs
-      nohup ./exp_pruning.sh > ../logs/exp_pruning.log 2>&1 &
+      nohup ./eval_pruning.sh > ../logs/exp_pruning.log 2>&1 &
       ```
-      
 
 3. **To determine the individual contribution of each component (*pruning*, *abstraction refinement*, and *bound estimation*):**
    
@@ -71,32 +70,64 @@ CoAChecker is a tool designed to analyze the safety of ACoAC policies. It uses f
       wget xxx
       ```
 
-   - Run the script "bin/exp_ablation.sh" and wait for it to complete
+   - Run the script "bin/eval_efficiency.sh" and wait for it to complete
 
       ```bash
       cd coachecker_c/bin
-      nohup ./exp_ablation.sh > ../logs/exp_ablation.log 2>&1 &
+      mkdir -p ../logs
+      nohup ./eval_efficiency.sh -a -n ../nuXmv -t 600 -l ../logs/ablation > ../logs/ablation_progress 2>&1 &
       ```
 
-      Check the running status of the script
+      Check the running progress
 
       ```bash
-      tail -f exp_ablation.log
+      tail -f ../logs/ablation_progress
       ```
    
-   - After the script completes, analyze the output logs of coachecker in the folder "logs/exp_ablation"
+   - After the script completes, analyze the output logs of coachecker in the folder "logs/ablation"
 
       ```bash
-      ./analyze_ablation.sh
+      ./log_analyzer -l ../logs/ablation/<dataset_name> -a
       ```
 
-      **Note.** The script `analyze_ablation.sh` may take a long time to complete because there are **200** instances in the dataset. For each instance, the script will run coachecker for **4** times with different configurations:  
+      **Note.** The script `analyze_ablation.sh` may take a long time to complete because there are **650** instances in the dataset. For each instance, the script will run coachecker for **4** times with different configurations:  
       - all components are enabled
       - pruning is disabled
       - abstraction refinement is disabled
       - bound estimation is disabled
       
-      For each run, the script sets the timeout threshold to **600** seconds. According to the test on a XX server, it requires about **10** hours to complete the experiments. To reduce the running time, it is recommended to set the timeout threshold to a smaller value.
+      For each run, the script sets the timeout threshold to **600** seconds. According to the test on a XX server, it requires about **72** hours to complete the experiments. To reduce the running time, it is recommended to set the timeout threshold to a smaller value.
+
+4. **To compare the performance of coachecker with VAC and Mohawk:**
+
+   - Download the [dataset]()
+
+      ```bash
+      cd coachecker_c/data
+      wget xxx
+      ```
+   
+   - Install VAC and Mohawk
+
+   - Run the script "bin/eval_efficiency.sh" and wait for it to complete
+
+      ```bash
+      cd coachecker_c/bin
+      mkdir -p ../logs
+      nohup ./eval_efficiency.sh -c -m -v <vac_home> -n ../nuXmv -t 600 -l ../logs/comp-coachecker-mohawk-vac > ../logs/comp_cmv_progress 2>&1 &
+      ```
+
+      Check the running progress
+
+      ```bash
+      tail -f ../logs/comp_cmv_progress
+      ```
+
+   - After the script completes, analyze the output logs of coachecker in the folder "logs/comp-coachecker-mohawk-vac"
+
+      ```bash
+      ./log_analyzer -cmv -l ../logs/comp-coachecker-mohawk-vac/<dataset_name>
+      ```
 
 ## License
 

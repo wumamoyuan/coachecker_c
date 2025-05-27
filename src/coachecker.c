@@ -40,7 +40,7 @@
 #define RESULT_SUFFIX_LEN 4
 
 static AABACResult verify(char *modelCheckerPath, char *instFilePath, char *logDir, int doPrechecking,
-                          int doSlicing, int enableAbstractRefine, int useBMC, int bl, int showRules, long timeout) {
+                          int doSlicing, int enableAbstractRefine, int useBMC, int tl, int showRules, long timeout) {
     AABACInstance *pInst = NULL;
 
     // read the instance file
@@ -91,8 +91,8 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, char *logD
             return result;
         }
 
-        writePath = (char *)malloc(strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN + AABAC_SUFFIX_LEN + 1);
-        sprintf(writePath, "%s%s%s", logDir, SLICING_RESULT_FILE_NAME, AABAC_SUFFIX);
+        writePath = (char *)malloc(strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN + AABAC_SUFFIX_LEN + 2);
+        sprintf(writePath, "%s/%s%s", logDir, SLICING_RESULT_FILE_NAME, AABAC_SUFFIX);
         writeAABACInstance(pInst, writePath);
         free(writePath);
     }
@@ -118,8 +118,8 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, char *logD
 
         if (enableAbstractRefine) {
             // Save the abstract sub-policy in the log directory
-            writePath = (char *)malloc(strlen(logDir) + ABSTRACTION_REFINEMENT_RESULT_FILE_NAME_LEN + strlen(roundStr) + AABAC_SUFFIX_LEN + 1);
-            sprintf(writePath, "%s%s%s%s", logDir, ABSTRACTION_REFINEMENT_RESULT_FILE_NAME, roundStr, AABAC_SUFFIX);
+            writePath = (char *)malloc(strlen(logDir) + ABSTRACTION_REFINEMENT_RESULT_FILE_NAME_LEN + strlen(roundStr) + AABAC_SUFFIX_LEN + 2);
+            sprintf(writePath, "%s/%s%s%s", logDir, ABSTRACTION_REFINEMENT_RESULT_FILE_NAME, roundStr, AABAC_SUFFIX);
             writeAABACInstance(next, writePath);
             free(writePath);
 
@@ -141,8 +141,8 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, char *logD
                 }
 
                 // Save the pruned sub-policy in the log directory
-                writePath = (char *)malloc(strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN + strlen(roundStr) + AABAC_SUFFIX_LEN + 1);
-                sprintf(writePath, "%s%s%s%s", logDir, SLICING_RESULT_FILE_NAME, roundStr, AABAC_SUFFIX);
+                writePath = (char *)malloc(strlen(logDir) + SLICING_RESULT_FILE_NAME_LEN + strlen(roundStr) + AABAC_SUFFIX_LEN + 2);
+                sprintf(writePath, "%s/%s%s%s", logDir, SLICING_RESULT_FILE_NAME, roundStr, AABAC_SUFFIX);
                 writeAABACInstance(next, writePath);
                 free(writePath);
             }
@@ -151,7 +151,7 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, char *logD
         int tooLarge = 0;
         if (useBMC) {
             // Bound estimation, if the bound exceeds the range of int, use INT_MAX as the bound
-            BigInteger bound = computeBound(next, bl);
+            BigInteger bound = computeBound(next, tl);
             if (bound.magLen > 1 || (bound.magLen == 1 && (bound.mag[0] >> 31) != 0)) {
                 logAABAC(__func__, __LINE__, 0, WARNING, "bound is too large, use INT_MAX as bound\n");
                 sprintf(boundStr, "%d", INT_MAX);
@@ -163,8 +163,8 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, char *logD
         }
 
         // Translate the instance to a NuSMV file
-        nusmvFilePath = (char *)malloc(strlen(logDir) + NUSMV_FILE_NAME_LEN + strlen(roundStr) + SMV_SUFFIX_LEN + 1);
-        sprintf(nusmvFilePath, "%s%s%s%s", logDir, NUSMV_FILE_NAME, roundStr, SMV_SUFFIX);
+        nusmvFilePath = (char *)malloc(strlen(logDir) + NUSMV_FILE_NAME_LEN + strlen(roundStr) + SMV_SUFFIX_LEN + 2);
+        sprintf(nusmvFilePath, "%s/%s%s%s", logDir, NUSMV_FILE_NAME, roundStr, SMV_SUFFIX);
         if (translate(next, nusmvFilePath, doSlicing) != 0) {
             logAABAC(__func__, __LINE__, 0, ERROR, "failed to translate instance to nusmv file\n");
             result.code = AABAC_RESULT_ERROR;
@@ -173,8 +173,8 @@ static AABACResult verify(char *modelCheckerPath, char *instFilePath, char *logD
         }
 
         // Call the model checker to verify the instance and save the result in the log directory
-        resultFilePath = (char *)malloc(strlen(logDir) + RESULT_FILE_NAME_LEN + strlen(roundStr) + RESULT_SUFFIX_LEN + 1);
-        sprintf(resultFilePath, "%s%s%s%s", logDir, RESULT_FILE_NAME, roundStr, RESULT_SUFFIX);
+        resultFilePath = (char *)malloc(strlen(logDir) + RESULT_FILE_NAME_LEN + strlen(roundStr) + RESULT_SUFFIX_LEN + 2);
+        sprintf(resultFilePath, "%s/%s%s%s", logDir, RESULT_FILE_NAME, roundStr, RESULT_SUFFIX);
         nusmvOutput = runModelChecker(modelCheckerPath, nusmvFilePath, resultFilePath, timeout, useBMC ? boundStr : NULL);
 
         // Analyze the result of the model checker
@@ -216,7 +216,7 @@ int main(int argc, char *argv[]) {
     int useBMC = 1;
     int showRules = 1;
 
-    int bl = 3;
+    int tl = 2;
     char *modelCheckerPath = NULL;
     char *inputFilePath = NULL;
     char *logDir = NULL;
@@ -225,15 +225,14 @@ int main(int argc, char *argv[]) {
     int unrecognized = 0;
 
     char *helpMessage = "Usage: aabac-verifier\
-        \n-bl <arg>                   bound level, an integer in [1, 4]\
+        \n-tl <arg>                   tight level, either 1 (loose) or 2 (tight)\
         \n-h                          print this help text\
-        \n-input <arg>                aabac file path\
+        \n-input <arg>                acoac file path\
         \n-model_checker <arg>        nusmv file path\
         \n-log_dir <arg>              directory for storing logs\
         \n-no_absref                  no abstraction refinement\
         \n-no_precheck                no precheck\
         \n-no_slicing                 no slicing\
-        \n-nuxmv <arg>                nuxmv file path\
         \n-no_rules                   do not show the rules associated with the actions in the result\
         \n-smc                        on smc mode\
         \n-timeout <arg>              timeout in seconds\n";
@@ -244,7 +243,7 @@ int main(int argc, char *argv[]) {
         {"no_slicing", no_argument, 0, 's'},
         {"no_absref", no_argument, 0, 'a'},
         {"smc", no_argument, 0, 'n'},
-        {"bl", required_argument, 0, 'b'},
+        {"tl", required_argument, 0, 'b'},
         {"no_rules", no_argument, 0, 'r'},
         {"model_checker", required_argument, 0, 'm'},
         {"input", required_argument, 0, 'i'},
@@ -281,9 +280,9 @@ int main(int argc, char *argv[]) {
             showRules = 0;
             break;
         case 'b':
-            bl = atoi(optarg);
-            if (bl < 1 || bl > 4) {
-                printf("bound level must be in [1, 4]\n");
+            tl = atoi(optarg);
+            if (tl != 1 && tl != 2) {
+                printf("tight level should be either 1 (loose) or 2 (tight)\n");
                 return 0;
             }
             break;
@@ -313,14 +312,16 @@ int main(int argc, char *argv[]) {
     } else if (help) {
         printf("%s", helpMessage);
     } else if (!inputFilePath) {
-        printf("please input the file path of aabac instance\n%s", helpMessage);
+        printf("please input the file path of acoac instance\n%s", helpMessage);
     } else if (!modelCheckerPath) {
         printf("please input the file path of model checker\n%s", helpMessage);
     } else if (!logDir) {
         printf("please input the directory for storing logs\n%s", helpMessage);
+    } else if (timeout <= 0) {
+        printf("timeout must be greater than 0\n%s", helpMessage);
     } else {
         clock_t start = clock();
-        verify(modelCheckerPath, inputFilePath, logDir, doPrechecking, doSlicing, enableAbstractRefine, useBMC, bl, showRules, timeout);
+        verify(modelCheckerPath, inputFilePath, logDir, doPrechecking, doSlicing, enableAbstractRefine, useBMC, tl, showRules, timeout);
         clock_t end = clock();
         double time_spent = (double)(end - start) / CLOCKS_PER_SEC * 1000;
         logAABAC(__func__, __LINE__, 0, INFO, "end verification, cost => %.2fms\n", time_spent);

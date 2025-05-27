@@ -18,13 +18,12 @@ AbsRef *createAbsRef(AABACInstance *pOriInst) {
     return pAbsRef;
 }
 
-/****************************************************************************************************
- * 功能：向前搜索有效规则
- * 参数：
- *      @pAbsRef[in]: 抽象精化器
- * 返回值：
- *      0表示未搜索到新的有效规则，1表示搜索到新的有效规则
- ***************************************************************************************************/
+/**
+ * Forward rule-selection strategy.
+ * 
+ * @param pAbsRef[in]: The AbsRef instance
+ * @return 0 if no new rules are selected, 1 otherwise
+ */
 static int forwardSearch(AbsRef *pAbsRef) {
     int ret = 0;
 
@@ -54,8 +53,11 @@ static int forwardSearch(AbsRef *pAbsRef) {
     HashBasedTable *pTablePrecond2Rule = pAbsRef->pOriInst->pTablePrecond2Rule;
     HashMap *pMapNewReachableAVsInc = iHashMap.Create(sizeof(int), sizeof(HashSet *), IntHashCode, IntEqual);
     iHashMap.SetDestructValue(pMapNewReachableAVsInc, iHashSet.DestructPointer);
-    /*遍历新增的可达属性值，找出可能因为新增的可达属性值而可达的规则；
-      如果这些规则不在pf中，且当前可达属性键值对能够满足规则的userCond，那么将该规则加入pf中，同时更新可达属性键值对*/
+
+    /* Traverse the newly reachable attribute values, find the rules that may become reachable
+     * because of the newly reachable attribute values. If these rules are not in pf, and the 
+     * current reachable attribute key-value pair can satisfy the userCond of the rule, then
+     * add the rule to pf, and update the reachable attribute key-value pair */
     HashNodeIterator *itMap = iHashMap.NewIterator(pAbsRef->pMapReachableAVsInc);
     HashNode *node;
     HashSet **ppSetRuleIdxes, *pSetValIdxes, **ppSetValIdxes;
@@ -103,7 +105,7 @@ static int forwardSearch(AbsRef *pAbsRef) {
     }
     iHashMap.DeleteIterator(itMap);
 
-    // 将newReachableAVs_incs中的属性值加入reachableAVs中
+    // Add the new reachable attribute-value pairs in pMapNewReachableAVsInc to pMapReachableAVs
     itMap = iHashMap.NewIterator(pMapNewReachableAVsInc);
     while (itMap->HasNext(itMap)) {
         node = itMap->GetNext(itMap);
@@ -127,10 +129,16 @@ static int forwardSearch(AbsRef *pAbsRef) {
     return ret;
 }
 
+/**
+ * Backward rule-selection strategy.
+ * 
+ * @param pAbsRef[in]: The AbsRef instance
+ * @return 0 if no new rules are selected, 1 otherwise
+ */
 static int backwardSearch(AbsRef *pAbsRef) {
     int ret = 0;
     if (pAbsRef->pMapUsefulAVsInc == NULL) {
-        // 用queryAVs初始化usefulAVs
+        // Initialize pMapUsefulAVs with pMapQueryAVs
         pAbsRef->pMapUsefulAVs = iHashMap.Create(sizeof(int), sizeof(HashSet *), IntHashCode, IntEqual);
         iHashMap.SetDestructValue(pAbsRef->pMapUsefulAVs, iHashSet.DestructPointer);
         pAbsRef->pMapUsefulAVsInc = iHashMap.Create(sizeof(int), sizeof(HashSet *), IntHashCode, IntEqual);
@@ -224,6 +232,11 @@ static int backwardSearch(AbsRef *pAbsRef) {
     return ret;
 }
 
+/**
+ * Clone the original global rule list.
+ * 
+ * @param pAbsRef[in]: The AbsRef instance
+ */
 static void cloneRules(AbsRef *pAbsRef) {
     int nRules = iVector.Size(pAbsRef->pOriVecRules);
 
@@ -258,6 +271,14 @@ static void cloneRules(AbsRef *pAbsRef) {
     pVecRules = pVecNewRules;
 }
 
+/**
+ * Use the rules selected by the forward rule-selection strategy and backward rule-selection strategy
+ * to generate an AABAC instance. If the rule-selection strategies cannot select any new rules, return NULL.
+ * 
+ * @param pAbsRef[in]: The AbsRef instance
+ * @return An AABAC instance containing the rules selected by the forward-selection strategy
+ * and backward-selection strategy
+ */
 static AABACInstance *getInstance(AbsRef *pAbsRef) {
     int modified = 0;
     modified |= forwardSearch(pAbsRef);
@@ -308,13 +329,6 @@ static AABACInstance *getInstance(AbsRef *pAbsRef) {
     return pNewInstance;
 }
 
-/****************************************************************************************************
- * 功能：生成初始的AABAC抽象实例
- * 参数：
- *      @pAbsRef[in]: 抽象精化器
- * 返回值：
- *      初始的抽象实例
- ***************************************************************************************************/
 AABACInstance *abstract(AbsRef *pAbsRef) {
     logAABAC(__func__, __LINE__, 0, INFO, "[Start] abstracting policy\n");
     pAbsRef->round++;
@@ -329,13 +343,6 @@ AABACInstance *abstract(AbsRef *pAbsRef) {
     return newInstance;
 }
 
-/****************************************************************************************************
- * 功能：精化AABAC实例
- * 参数：
- *      @pAbsRef[in]: 抽象精化器
- * 返回值：
- *      精化后的实例，无法精化时返回NULL
- ***************************************************************************************************/
 AABACInstance *refine(AbsRef *pAbsRef) {
     logAABAC(__func__, __LINE__, 0, INFO, "[Start] %d-th policy refinement\n", pAbsRef->round);
     clock_t startRefining = clock();

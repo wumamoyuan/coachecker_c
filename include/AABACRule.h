@@ -4,6 +4,7 @@
 #include "ccl/containers.h"
 #include "hashSet.h"
 
+/* The comparison operator. {=, !=, <, >, <=, >=} */
 typedef enum {
     EQUAL,
     NOT_EQUAL,
@@ -13,23 +14,28 @@ typedef enum {
     GREATER_THAN_OR_EQUAL
 } comparisonOperator;
 
+/* The type of an attribute. {boolean, string, integer} */
 typedef enum {
     BOOLEAN,
     STRING,
     INTEGER,
 } AttrType;
 
+/* An atomic condition, consisting of an attribute, a value, and a comparison operator. */
 typedef struct {
     int attribute;
     int value;
     comparisonOperator op;
 } AtomCondition;
 
+/* A rule, consisting of an administrator condition, a user condition, a target attribute, and a target value. */
 typedef struct _Rule {
     HashSet *adminCond;
     HashSet *userCond;
     int targetAttrIdx;
     int targetValueIdx;
+
+    // The map from an attribute to the set of its values that can satisfy the user condition
     HashMap *pmapUserCondValue;
 } Rule;
 

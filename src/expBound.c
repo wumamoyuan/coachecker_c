@@ -30,11 +30,11 @@ void computeBoundTightness(char *instFile, char *resultFile) {
 
     // compute the trivial bound and the tightest bound
     BigInteger b1 = computeBound(pInst, 1);
-    BigInteger b3 = computeBound(pInst, 3);
+    BigInteger b2 = computeBound(pInst, 2);
 
     //b1.
     double tightness = 0;//computeTightness(b1, b2);
 
     // write the result to the result file
-    fprintf(fp, "%s,%s,%s,%.2f%%\n", instFile, b1, b3, tightness);
+    fprintf(fp, "%s,%s,%s,%.2f%%\n", instFile, b1, b2, tightness);
 }

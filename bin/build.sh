@@ -6,7 +6,7 @@ if [[ $1 = 'clean' ]]; then
 	cd ../ccl/src
 	make clean
 	cd ../../
-	rm -rf lib
+	rm -rf lib/libccl.a
     rm -rf build
 	exit 1
 fi
@@ -16,7 +16,7 @@ echo "Compiling source files..."
 cd ../ccl/src
 make libccl.a
 cd ../../
-mkdir lib
+mkdir -p lib
 cp ccl/src/libccl.a lib
 
 #Build coachecker
@@ -28,5 +28,3 @@ make
 
 echo "Done."
 echo "You can execute the coachecker in bin directory"
-
-
